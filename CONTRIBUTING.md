@@ -7,9 +7,9 @@ Report bugs at <ISSUETRACKER>
 
 If you are reporting a bug, please include:
 
-Your operating system name and version.
-Any details about your local setup that might be helpful in troubleshooting.
-Detailed steps to reproduce the bug.
+* Your operating system name and version.
+* Any details about your local setup that might be helpful in troubleshooting.
+* Detailed steps to reproduce the bug.
 Fix Bugs
 Look through the GitHub issues for bugs. Anything tagged with "bug" and "help wanted" is open to whoever wants to implement it.
 
