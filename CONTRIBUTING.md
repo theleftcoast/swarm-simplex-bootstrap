@@ -1,9 +1,7 @@
 # Contributions are warmly welcome!
 
-## You can contribute in many ways:
-
 ### Report Bugs
-Report bugs at <ISSUETRACKER>
+Report bugs on the [https://github.com/theleftcoast/swarm-simplex-bootstrap/issues](issue tracker page).
 
 If you are reporting a bug, please include:
 
@@ -17,10 +15,10 @@ Look through the GitHub issues for bugs. Anything tagged with "bug" and "help wa
 Look through the GitHub issues for features. Anything tagged with "enhancement" and "help wanted" is open to whoever wants to implement it. Those that are tagged with "first-timers-only" is suitable for those getting started in open-source software.
 
 ### Write Documentation
-<PROJECTNAME> could always use more documentation, whether as part of the official docs, in docstrings, or with blog posts, articles, Youtube videos, etc. 
+swarm-simplex-bootstrap could always use more documentation, whether as part of the official docs, in docstrings, or with blog posts, articles, Youtube videos, etc. 
 
-## Submit Feedback
-The best way to send feedback is to file an issue at <ISSUETRACKER>
+### Submit Feedback
+The best way to send feedback is to file an issue at [https://github.com/theleftcoast/swarm-simplex-bootstrap/issues](issue tracker page).
 
 If you are proposing a feature:
 
