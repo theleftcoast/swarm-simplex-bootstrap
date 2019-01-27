@@ -27,7 +27,7 @@ def nelder_mead(x0,func,args=(),kwargs={}, method=None, bounds=None, constraints
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
-    *** DOES NOT INCORPORATE BOUNDS OR CONTRAINTS YET ***
+    TODO: Incorporate bounds and constraints into basic Nelder-Mead algorithm
     """
 
     # Initialize simplex
