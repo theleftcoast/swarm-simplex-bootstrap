@@ -22,12 +22,13 @@ def create_simplex(initial,size):
             result[i] += q*identity[j]             
     return np.row_stack((initial,result))
 
-def nelder_mead(x0,func,args=(),kwargs={}, method=None, bounds=None, constraints=(), tol=None, options=None):
+def nelder_mead(x0,func,args=(),kwargs={}, bounds=None, constraints=(), tol=None, options=None):
     """ 
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
-    TODO: Incorporate bounds and constraints into basic Nelder-Mead algorithm
+    TODO: Incorporate bounds and constraints into basic Nelder-Mead algorithm.
+    TODO: Improve handling of shrink step function evaluation (parallelize??)
     """
 
     # Initialize simplex
@@ -69,48 +70,60 @@ def nelder_mead(x0,func,args=(),kwargs={}, method=None, bounds=None, constraints
         f_highest = f_simplex[ordered[-1]]
         f_second_highest = f_simplex[ordered[-2]]
         f_lowest = f_simplex[ordered[0]]    
-        # Improved points.
-        reflection = centroid + r*(centroid-highest)
-        expansion = centroid + e*(reflection-centroid)
-        outside_contraction = centroid + c*(reflection-centroid)
-        inside_contraction = centroid - c*(reflection-centroid)
-        # Objective function evaluated at each improved point.
-        f_reflection = func(reflection, *args, **kwargs)
-        f_expansion = func(expansion, *args, **kwargs)
-        f_outside_contraction = func(outside_contraction, *args, **kwargs)
-        f_inside_contraction = func(inside_contraction, *args, **kwargs)
 
-        if f_reflection < f_lowest and f_expansion < f_reflection:
-            # Replace highest by expansion            
-            simplex[ordered[-1],:] = expansion
-            f_simplex[ordered[-1]] = f_expansion
-            expansion_count += 1
-        elif f_reflection < f_lowest and f_expansion >= f_reflection:
-            # Replace highest by reflection
-            simplex[ordered[-1],:] = reflection
-            f_simplex[ordered[-1]] = f_reflection
-            reflection_count += 1        
+        # Evaluate reflection.
+        reflection = centroid + r*(centroid-highest)
+        f_reflection = func(reflection, *args, **kwargs)
+
+        if f_reflection < f_lowest:
+            # Evaluate expansion.
+            expansion = centroid + e * (reflection - centroid)
+            f_expansion = func(expansion, *args, **kwargs)
+            if f_expansion < f_reflection:
+                # Replace highest by expansion
+                simplex[ordered[-1],:] = expansion
+                f_simplex[ordered[-1]] = f_expansion
+                expansion_count += 1
+            else:
+                # Replace highest by reflection
+                simplex[ordered[-1],:] = reflection
+                f_simplex[ordered[-1]] = f_reflection
+                reflection_count += 1
         elif f_reflection < f_second_highest:
             # Replace highest by reflection
             simplex[ordered[-1],:] = reflection
             f_simplex[ordered[-1]] = f_reflection
             reflection_count += 1
-        elif f_reflection < f_highest and f_outside_contraction < f_reflection:
-            # Replace highest by reflection
-            simplex[ordered[-1],:] = outside_contraction
-            f_simplex[ordered[-1]] = f_outside_contraction
-            outside_contraction_count += 1
-        elif f_inside_contraction < f_highest:
-            # Replace highest by contraction
-            simplex[ordered[-1],:] = inside_contraction
-            f_simplex[ordered[-1]] = f_inside_contraction
-            inside_contraction_count += 1
+        elif f_reflection < f_highest:
+            # Evaluate outside contraction.
+            outside_contraction = centroid + c * (reflection - centroid)
+            f_outside_contraction = func(outside_contraction, *args, **kwargs)
+            if f_outside_contraction < f_reflection:
+                # Replace highest by reflection
+                simplex[ordered[-1],:] = outside_contraction
+                f_simplex[ordered[-1]] = f_outside_contraction
+                outside_contraction_count += 1
+            else:
+                # Replace all but best by shrink
+                for i in ordered:
+                    simplex[i, :] = lowest + s * (simplex[i, :] - lowest)
+                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                shrink_count += 1
         else:
-            # Replace all but best by shrink
-            for i in ordered:
-                simplex[i,:] = lowest + s*(simplex[i,:]-lowest)                
-            f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
-            shrink_count += 1
+            # Evaluate inside contraction.
+            inside_contraction = centroid - c * (reflection - centroid)
+            f_inside_contraction = func(inside_contraction, *args, **kwargs)
+            if f_inside_contraction < f_highest:
+                # Replace highest by contraction
+                simplex[ordered[-1],:] = inside_contraction
+                f_simplex[ordered[-1]] = f_inside_contraction
+                inside_contraction_count += 1
+            else:
+                # Replace all but best by shrink
+                for i in ordered:
+                    simplex[i,:] = lowest + s*(simplex[i,:]-lowest)
+                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                shrink_count += 1
 
         ordered = np.argsort(f_simplex)
         flat = np.absolute(f_simplex[ordered[-1]]-f_simplex[ordered[0]])
