@@ -1,8 +1,9 @@
 from optimizer import constraints_check, bounds_check
 from unittest import TestCase, main
 
-# Initial vector for testing bounds_check and constraints_check
+# Initial vector and length for testing bounds_check and constraints_check
 x0 = [1.2, 2.3]
+n = 2
 
 # Define bounds lists for testing bounds_check
 bounds_well_defined = [(-1.5, 1.5), (-1.5, 2.5)]
@@ -12,7 +13,7 @@ bounds_wrong_order = [(1.5, -1.5), (-1.5, 2.5)]
 bounds_wrong_length = [(1.5, -1.5), (-1.5, 2.5), (4.3, 3.6)]
 bounds_wrong_type = [(1.5, -1.5), ('a', 2.5)]
 
-# Define a simple functions for building constraints dictionaries to test testing constraints_check
+# Define simple functions for building constraints dictionaries to test testing constraints_check
 def rosen(x):
     return (1 - x[0]) ** 2 + 100 * (x[1] - x[0] ** 2) ** 2
 
@@ -89,37 +90,37 @@ consts_kwargs_not_dictionary = [{'type': '<0', 'func': sphere, 'kwargs': []},
 class TestBoundsConstraints(TestCase):
 
     def test_bounds_partially_defined(self):
-        self.assertRaises(TypeError, bounds_check, x0, bounds_partially_defined)
+        self.assertRaises(TypeError, bounds_check, n, bounds_partially_defined)
 
     def test_bounds_wrong_order(self):
-        self.assertRaises(ValueError, bounds_check, x0, bounds_wrong_order)
+        self.assertRaises(ValueError, bounds_check, n, bounds_wrong_order)
 
     def test_bounds_wrong_length(self):
-        self.assertRaises(ValueError, bounds_check, x0, bounds_wrong_length)
+        self.assertRaises(ValueError, bounds_check, n, bounds_wrong_length)
 
     def test_bounds_wrong_type(self):
-        self.assertRaises(TypeError, bounds_check, x0, bounds_wrong_type)
+        self.assertRaises(TypeError, bounds_check, n, bounds_wrong_type)
 
     def test_consts_missing_reqtypekey(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_missing_reqtypekey)
+        self.assertRaises(TypeError, constraints_check, consts_missing_reqtypekey)
 
     def test_consts_missing_reqfunckey(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_missing_reqfunckey)
+        self.assertRaises(TypeError, constraints_check, consts_missing_reqfunckey)
 
     def test_consts_not_dictionary(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_not_dictionary)
+        self.assertRaises(TypeError, constraints_check, consts_not_dictionary)
 
     def test_consts_wrong_type(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_wrong_type)
+        self.assertRaises(ValueError, constraints_check, consts_wrong_type)
 
     def test_consts_not_callable(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_not_callable)
+        self.assertRaises(TypeError, constraints_check, consts_not_callable)
 
     def test_consts_args_not_tuple(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_args_not_tuple)
+        self.assertRaises(TypeError, constraints_check, consts_args_not_tuple)
 
     def test_consts_kwargs_not_dictionary(self):
-        self.assertRaises(TypeError, constraints_check, x0, consts_kwargs_not_dictionary)
+        self.assertRaises(TypeError, constraints_check, consts_kwargs_not_dictionary)
 
 if __name__ == "__main__":
     main()
