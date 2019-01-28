@@ -80,7 +80,6 @@ def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
 
 def penalty(x, bounds=None, constraints=None):
     penalty_value = 0.0
-
     if bounds is not None:
         for i, bound in enumerate(bounds):
             if bound[0] > x[i] or bound[1] < x[i]:
@@ -88,6 +87,7 @@ def penalty(x, bounds=None, constraints=None):
                 break
 
     if constraints is not None:
+        print("Made it.")
         for i, const in enumerate(constraints):
             const_value = const['func'](x, *const['args'], **const['kwargs'])
             if const['type'] == '>0' and const_value <= 0.0:
@@ -226,18 +226,20 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
-    TODO: Incorporate bounds and constraints into basic Nelder-Mead algorithm.
-    TODO: Improve handling of shrink step function evaluation (parallelize??)
+    TODO: Bounds/constraints are implemented, but the test cases all pass 'none' to both. Build bounded/constrained tests.
+    TODO: Consider improving handling of shrink step function evaluation (parallelize??)
     """
-
+    # penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
+    # func(x, *args, **kwargs)
     # Validate bounds list and constraints dictionary
     n = len(x0)
-    b = bounds_check(n, bounds)
-    c = constraints_check(constraints)
+    bound = bounds_check(n, bounds)
+    const = constraints_check(constraints)
 
     # Initialize simplex
     simplex = create_simplex(x0,0.01)
-    f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+    # Used to be np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+    f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
     ordered = np.argsort(f_simplex)
 
     # Calculate adaptive parameters improve convergence for higher dimensional problems
@@ -246,11 +248,6 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
     e = 1.0+2.0/n # expansion (standard method = 2)
     c = 0.75-1.0/(2.0*n) # contraction (standard method = 1/2)
     s = 1.0-1.0/n # shrink (standard method = 1/2)
-
-    # Termination criteria (used to set these here, moved them up to the function definition)
-    # small_tol = 10**-14
-    # flat_tol = 10**-14
-    # max_iter = 10000
 
     # Initialize termination variables
     small = 1.0
@@ -277,12 +274,14 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
 
         # Evaluate reflection.
         reflection = centroid + r*(centroid-highest)
-        f_reflection = func(reflection, *args, **kwargs)
+        # Used to be func(reflection, *args, **kwargs)
+        f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+
 
         if f_reflection < f_lowest:
             # Evaluate expansion.
             expansion = centroid + e * (reflection - centroid)
-            f_expansion = func(expansion, *args, **kwargs)
+            f_expansion = penalized_func(expansion, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_expansion < f_reflection:
                 # Replace highest by expansion
                 simplex[ordered[-1],:] = expansion
@@ -301,7 +300,7 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
         elif f_reflection < f_highest:
             # Evaluate outside contraction.
             outside_contraction = centroid + c * (reflection - centroid)
-            f_outside_contraction = func(outside_contraction, *args, **kwargs)
+            f_outside_contraction = penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_outside_contraction < f_reflection:
                 # Replace highest by reflection
                 simplex[ordered[-1],:] = outside_contraction
@@ -311,12 +310,12 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i, :] = lowest + s * (simplex[i, :] - lowest)
-                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
                 shrink_count += 1
         else:
             # Evaluate inside contraction.
             inside_contraction = centroid - c * (reflection - centroid)
-            f_inside_contraction = func(inside_contraction, *args, **kwargs)
+            f_inside_contraction = penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_inside_contraction < f_highest:
                 # Replace highest by contraction
                 simplex[ordered[-1],:] = inside_contraction
@@ -326,7 +325,7 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i,:] = lowest + s*(simplex[i,:]-lowest)
-                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
                 shrink_count += 1
 
         ordered = np.argsort(f_simplex)
