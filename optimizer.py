@@ -221,12 +221,12 @@ def create_simplex(initial,size):
     return np.row_stack((initial,result))
 
 def infinity_check(x):
-    """ Check for any +/- np.inf elements. """
+    """ Check for +/- np.inf elements. """
     element_check = np.isinf(x)
     return np.any(element_check)
 
 def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-14, flat_tol=10.0**-14,
-                max_iter=10000, max_bisect_iter=100, initial_size = 0.1):
+                max_iter=10000, max_bisect_iter=100, initial_size = 0.01):
     """ 
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
@@ -274,6 +274,7 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         simplex = create_simplex(x0, initial_size)
         f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                         constraints=const)
+        counter = counter + 1
 
     if counter >= max_bisect_iter:
         raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints.')
