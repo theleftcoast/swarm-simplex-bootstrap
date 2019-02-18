@@ -1,13 +1,14 @@
 import objective_functions as obj
+import constraint_functions as const
 from optimizer import nelder_mead
 from unittest import TestCase, main
 
 class ObjectiveFunctionTestCase(TestCase):
     func = obj.sphere
     bounds = [(-1.5, 1.5), (-0.5, 2.5)]
-    constraints = [{'type': '<=0', 'func': lambda x: (x[0] - 1.0) ** 3 - x[1] + 1.0},
-                     {'type': '<=0', 'func': lambda x: x[0] + x[1] - 2.0}]
-    initial_pt = [1.2, -0.1]
+    constraints = [{'type': '<=0', 'func': const.f1},
+                     {'type': '<=0', 'func': const.f2}]
+    initial_pt = [-0.5, 1.0]
     global_minimum = [0.0, 0.0]
     precision = 4
 
@@ -46,7 +47,6 @@ class ObjectiveFunctionTestCase(TestCase):
         assert it gets at least kind of close to the correct value
         """
         minimum = nelder_mead(self.initial_pt, self.func, bounds=self.bounds, constraints=self.constraints)
-        print(minimum)
         self.assertArrayAlmostEqual(minimum, self.global_minimum, places=self.precision)
 
     def test_particle_swarm(self):
@@ -56,11 +56,9 @@ class ObjectiveFunctionTestCase(TestCase):
 class SphereTest(ObjectiveFunctionTestCase):
     func = obj.sphere
     bounds = [(-1.5, 1.5), (-0.5, 2.5)]
-    constraints = [{'type': '<=0', 'func': lambda x: x[0]**2 + x[1]**2}]
-    initial_pt = [1.2, -0.1]
-    global_minimum = [0, 0]
+    constraints = [{'type': '<=0', 'func': const.f3}]
+    initial_pt = [-0.5, 1.0]
+    global_minimum = [0.0, 0.0]
 
-'''class RosenbrockTest(ObjectiveFunctionTestCase):
-    func = obj.rosenbrock
-    initial_pt = [2.2, 1.1, 0.5, -0.5, -1.0]
-    global_minimum = [1.0, 1.0, 1.0, 1.0, 1.0]'''
+if __name__ == "__main__":
+    main()
