@@ -1,4 +1,4 @@
-from optimizer import constraints_check, bounds_check
+from optimizer import bounds_check, constraints_check
 from unittest import TestCase, main
 
 # Initial vector and length for testing bounds_check and constraints_check

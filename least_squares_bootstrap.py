@@ -39,30 +39,25 @@ def pooled_lsq(theta, func, x, fx):
 
 
 
-def bootstrap_least_squares_objective_function(theta, func, x, fx, bootstrap_index, bootstrap_count):
+def bootstrap_least_squares_objective_function(theta, func, x, fx, w, args = None, kwargs = None, bootstrap = None):
     """
-    The least squares objective function is the heart of fitting functions.
+    The least squares objective function is the heart of fitting algorithms.
     
     In all cases, x is a list of lists or a list of tuples that represent vector inputs
     and fx is the scalar output corresponding to the vector input.
 
-    Long term goal --> Minimize func(x, *theta, *args, **kwargs) subject to bounds 
-    and contraints where theta is a list of scalar arguements to be adjusted and 
-    *args/*kwargs are other positional/keyword arguements to be passed to func.
-        lsof(x, fx, theta, func, args=(), kwargs={}, bounds=None, constraints=None)
-
-    Short term goal --> Minimize func(x, *theta)
-
-    interface well with nelder_mead(x0,func,args=(),kwargs={}, method=None, bounds=None, constraints=(), tol=None, options=None)
+    objective_function = sum_over_i{(bootstrap_i/w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2}
 
     Parameters
     ----------
+    theta : list, required
     x : list of lists or list of tuples, required
     fx : list of scalars, required
-    theta : list, required    
+    w : list of scalars, required
+
     func : callable, ``func(x, *theta, *args, **kwargs)``
-    args : tuple, optional
-    kwargs : dictionary, optional
+    args : tuple or list of tuples, optional
+    kwargs : dictionary or list of dictionaries, optional
     bounds : list of bounds tuples, **special format**, optional
     constraints : list of constraint dictionaries, **special format**, optional 
     
@@ -70,11 +65,32 @@ def bootstrap_least_squares_objective_function(theta, func, x, fx, bootstrap_ind
     ----------
     objective_function_value : scalar
     """
-    x_sample = x[bootstrap_index]
-    fx_sample = fx[bootstrap_index]
-    evaluated_func = parallelize(func, x_sample, *theta)
-    return np.sum(((fx_sample - evaluated_func)**2)*bootstrap_count)
+    x_array = np.array(x)
+    fx_array = np.array(fx)
+    w_array = np.array(w)
+    bootstrap_array = np.array(bootstrap)
+    with multiprocessing.Pool(processes=3) as pool:
+        results = pool.starmap(merge_names, product(names, repeat=2))
+    return np.sum()
 
+def bootstrap_function_evaluation(func, x, theta = None, args = None, kwargs = None, bootstrap = None):
+    """
+    Evaluate func if boostrap is greater than zero.
+
+    Parameters
+    ----------
+    func : callable, ``func(x, *theta, *args, **kwargs)``, required
+    x : list of lists or list of tuples, required
+    theta : list or tuple, optional
+    args : tuple or list of tuples, optional
+    kwargs : dictionary, optional
+    bootstrap : int, required
+
+    Returns
+    ----------
+    evaluated_function : scalar
+    """
+    return bootstrap*func(x, *theta, *args, **kwargs) if bootstrap > 0 else 0.0
 
 def parallelize(func, x, *args, **kwargs):
     """
@@ -87,27 +103,18 @@ def parallelize(func, x, *args, **kwargs):
     return np.apply_along_axis(func, 1, x, *args, **kwargs)
 
 
-def boostrap_resample(x, x_size):
+def bootstrap_sample(array_size, sample_size):
     """
-    returns index, count arrays for a random sample of the input data
-
-    The goal is to not evaluate the same function with the same paramters multiple times,
-
-    Runs an object function on a randomly re-sampled vector. based on the
-    initial input
-    
-    re-sample an initial vector into something bigger. Something more. 
-    Something we can use over and over again to check cross-correlation between
-    our regressed parameters based on their covariance
-    
-    Such correlation. Much meta regression. Wow.
+    Returns an array of multipliers which is a uniform random sample consisting of [sample_size] elements taken from an
+    array of indeces where n = [array_size].  This array of multipliers can be used to generate bootstrap confidence
+    intervals.
     """
-    x_array = np.array(x)
-    x_size = np.size(x_array[:, 0])
-    indexes = np.arange(x_size)
-    samples = np.random.choice(indexes, size=x_size, replace=True)
-    bootstrap_index, bootstrap_count = np.unique(samples, return_counts=True)
-    return bootstrap_index, bootstrap_count
+    indeces = np.arange(array_size)
+    bootstrap = np.zeros(array_size,dtype=np.int32)
+    samples = np.random.choice(indeces, size=sample_size, replace=True)
+    bootstrap_indeces, bootstrap_count = np.unique(samples, return_counts=True)
+    bootstrap[bootstrap_indeces] = bootstrap_count
+    return bootstrap
 
 
     

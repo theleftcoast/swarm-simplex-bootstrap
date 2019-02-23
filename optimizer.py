@@ -80,7 +80,6 @@ def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
 
 def penalty(x, bounds=None, constraints=None):
     penalty_value = 0.0
-
     if bounds is not None:
         for i, bound in enumerate(bounds):
             if bound[0] > x[i] or bound[1] < x[i]:
@@ -221,23 +220,65 @@ def create_simplex(initial,size):
             result[i] += q*identity[j]             
     return np.row_stack((initial,result))
 
-def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol=10.0**-14,flat_tol=10.0**-14,max_iter=10000):
+def infinity_check(x):
+    """ Check for +/- np.inf elements. """
+    element_check = np.isinf(x)
+    return np.any(element_check)
+
+def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-14, flat_tol=10.0**-14,
+                max_iter=10000, max_bisect_iter=100, initial_size = 0.01):
     """ 
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
-    TODO: Incorporate bounds and constraints into basic Nelder-Mead algorithm.
-    TODO: Improve handling of shrink step function evaluation (parallelize??)
+    TODO: Bounds/constraints are implemented, but the test cases all pass 'none' to both. Build bounded/constrained tests.
+    TODO: Consider improving handling of shrink step function evaluation (parallelize??)
     """
-
+    # penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
+    # func(x, *args, **kwargs)
     # Validate bounds list and constraints dictionary
     n = len(x0)
-    b = bounds_check(n, bounds)
-    c = constraints_check(constraints)
+    bound = bounds_check(n, bounds)
+    const = constraints_check(constraints)
+
+    # Validate the initial point is in the problem space defined by the bounds and constraints.
+    if infinity_check(x0) == True:
+        raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
+
+    # Initialize a termination variable
+    counter = 0
 
     # Initialize simplex
-    simplex = create_simplex(x0,0.01)
-    f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+    simplex = create_simplex(x0,initial_size)
+    f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
+                                    constraints=const)
+
+    # Initialize a termination variable
+    counter = 0
+
+    # Check that the objective function evaluates to a finite value for all points in the simplex.  If the objective
+    # function evaluates to +/- np.inf, then this likely signals a bound or constraint violation.  One reason this
+    # could happen is that the simplex is too big to fit inside the bounded and constrained problem space.  A good
+    # check to see if bounds and constraints that define the problem space are reasonably 'well conditioned' is to run
+    # feasible_points_random and check that fraction_violated is in the range 0.01-1.00.  If fraction_violated is <0.01,
+    # then we know that the bounded and constrained problem space (the feasible problem space) is a tiny fraction of the
+    # bounded space which means we should re-consider the problem spaced passed to nedler_mead. If fraction_violated is
+    # in the range 0.01-1.00, then we bisect the simplex size, generate a new simplex, and and re-evaluate the objective
+    # function at all points. If the bisection routine doesn't yield a valid simplex (where the objective function
+    # evaluates to finite values for all points) after 100 iterations, then the initial point could be very close to a
+    # bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value that is
+    # further away from the bounds and constraints that define the problem space.
+
+    while infinity_check(f_simplex) == True and counter <= max_bisect_iter:
+        initial_size = initial_size/2.0
+        simplex = create_simplex(x0, initial_size)
+        f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
+                                        constraints=const)
+        counter = counter + 1
+
+    if counter >= max_bisect_iter:
+        raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints.')
+
     ordered = np.argsort(f_simplex)
 
     # Calculate adaptive parameters improve convergence for higher dimensional problems
@@ -247,12 +288,7 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
     c = 0.75-1.0/(2.0*n) # contraction (standard method = 1/2)
     s = 1.0-1.0/n # shrink (standard method = 1/2)
 
-    # Termination criteria (used to set these here, moved them up to the function definition)
-    # small_tol = 10**-14
-    # flat_tol = 10**-14
-    # max_iter = 10000
-
-    # Initialize termination variables
+    # Initialize additional termination variables
     small = 1.0
     flat = 1.0
     counter = 0
@@ -265,6 +301,9 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
     shrink_count = 0
 
     while small > small_tol and flat > flat_tol and counter < max_iter:
+        if DEBUG:
+            print(f_simplex)
+
         # Worst, second worst, and best simplex points.
         lowest = simplex[ordered[0],:]
         second_highest = simplex[ordered[-2],:]
@@ -277,12 +316,14 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
 
         # Evaluate reflection.
         reflection = centroid + r*(centroid-highest)
-        f_reflection = func(reflection, *args, **kwargs)
+        # Used to be func(reflection, *args, **kwargs)
+        f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+
 
         if f_reflection < f_lowest:
             # Evaluate expansion.
             expansion = centroid + e * (reflection - centroid)
-            f_expansion = func(expansion, *args, **kwargs)
+            f_expansion = penalized_func(expansion, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_expansion < f_reflection:
                 # Replace highest by expansion
                 simplex[ordered[-1],:] = expansion
@@ -301,7 +342,7 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
         elif f_reflection < f_highest:
             # Evaluate outside contraction.
             outside_contraction = centroid + c * (reflection - centroid)
-            f_outside_contraction = func(outside_contraction, *args, **kwargs)
+            f_outside_contraction = penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_outside_contraction < f_reflection:
                 # Replace highest by reflection
                 simplex[ordered[-1],:] = outside_contraction
@@ -311,12 +352,12 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i, :] = lowest + s * (simplex[i, :] - lowest)
-                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
                 shrink_count += 1
         else:
             # Evaluate inside contraction.
             inside_contraction = centroid - c * (reflection - centroid)
-            f_inside_contraction = func(inside_contraction, *args, **kwargs)
+            f_inside_contraction = penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_inside_contraction < f_highest:
                 # Replace highest by contraction
                 simplex[ordered[-1],:] = inside_contraction
@@ -326,12 +367,13 @@ def nelder_mead(x0,func,args=(),kwargs={},bounds=None,constraints=None,small_tol
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i,:] = lowest + s*(simplex[i,:]-lowest)
-                f_simplex = np.apply_along_axis(func, 1, simplex, *args, **kwargs)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
                 shrink_count += 1
 
         ordered = np.argsort(f_simplex)
-        flat = np.absolute(f_simplex[ordered[-1]]-f_simplex[ordered[0]])
-        small = np.linalg.norm(simplex[ordered[-1]]-simplex[ordered[0]])
+        if infinity_check(f_simplex)==False:
+            flat = np.absolute(f_simplex[ordered[-1]]-f_simplex[ordered[0]])
+            small = np.linalg.norm(simplex[ordered[-1]]-simplex[ordered[0]])
         counter = counter + 1
     if DEBUG:
         print(reflection_count)
