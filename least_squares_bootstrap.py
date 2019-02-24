@@ -46,7 +46,7 @@ def bootstrap_least_squares_objective_function(theta, func, x, fx, w, args = Non
     In all cases, x is a list of lists or a list of tuples that represent vector inputs
     and fx is the scalar output corresponding to the vector input.
 
-    objective_function = sum_over_i{(bootstrap_i/w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2}
+    objective_function = sum_over_i{(bootstrap_i/w_i)*(func(theta, x_i, *args_i, **kwargs_i) - fx_i)**2}
 
     Parameters
     ----------
@@ -69,11 +69,14 @@ def bootstrap_least_squares_objective_function(theta, func, x, fx, w, args = Non
     fx_array = np.array(fx)
     w_array = np.array(w)
     bootstrap_array = np.array(bootstrap)
+
+    '''current_func_value = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), current_position))'''
+
     with multiprocessing.Pool(processes=3) as pool:
         results = pool.starmap(merge_names, product(names, repeat=2))
     return np.sum()
 
-def bootstrap_function_evaluation(func, x, theta = None, args = None, kwargs = None, bootstrap = None):
+def bootstrap_function_evaluation(func, x, theta = None, args = None, kwargs = None, bootstrap = 1):
     """
     Evaluate func if boostrap is greater than zero.
 
@@ -103,7 +106,7 @@ def parallelize(func, x, *args, **kwargs):
     return np.apply_along_axis(func, 1, x, *args, **kwargs)
 
 
-def bootstrap_sample(array_size, sample_size):
+def bootstrap_sample_generator(array_size, sample_size):
     """
     Returns an array of multipliers which is a uniform random sample consisting of [sample_size] elements taken from an
     array of indeces where n = [array_size].  This array of multipliers can be used to generate bootstrap confidence
@@ -113,8 +116,8 @@ def bootstrap_sample(array_size, sample_size):
     bootstrap = np.zeros(array_size,dtype=np.int32)
     samples = np.random.choice(indeces, size=sample_size, replace=True)
     bootstrap_indeces, bootstrap_count = np.unique(samples, return_counts=True)
-    bootstrap[bootstrap_indeces] = bootstrap_count
-    return bootstrap
+    bootstrap_sample[bootstrap_indeces] = bootstrap_count
+    return bootstrap_sample
 
 
     
