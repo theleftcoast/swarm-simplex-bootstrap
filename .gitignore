@@ -1,0 +1,3 @@
+*.ipynb                 # jupyter notebooks
+.ipynb_checkpoints/*    # jupyter artifacts
+*.egg-info              # pip installation artifacts
