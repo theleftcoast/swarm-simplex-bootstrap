@@ -81,13 +81,11 @@ def least_squares_objective_function(theta, func, x, fx, w = None, b = None, arg
     x_array = np.array(x)
     fx_array = np.array(fx)
 
-    w_array = None
     if w is None:
         w_array = np.ones(len(x))
     else:
         w_array = np.array(w)
 
-    b_array = None
     if b is None:
         b_array = np.ones(len(x))
     else:
@@ -97,7 +95,6 @@ def least_squares_objective_function(theta, func, x, fx, w = None, b = None, arg
 
     theta_list = [theta]*len(x)
 
-    args_list = None
     if args is None:
         args_list = [()]*len(x)
     elif isinstance(args, (list, tuple)):
@@ -105,14 +102,12 @@ def least_squares_objective_function(theta, func, x, fx, w = None, b = None, arg
     else:
         raise TypeError("args must be a list or tuple of length len(x) containing args lists or args tuples")
 
-    kwargs_list = None
     if kwargs is None:
         kwargs_list = [{}]*len(x)
     elif isinstance(kwargs, (list, tuple)):
         kwargs_list = kwargs
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
-    results = None
 
     arguments = list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list))
 
@@ -155,18 +150,18 @@ x = [[-2.0, -2.0],
 
 fx_exact = [0.16, 0.34, 1.04, 2.26, 4, 0.16, 0.04, 0.26, 1, 2.26, 1.04, 0.26, 0, 0.26, 1.04, 2.26, 1, 0.26, 0.04, 0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
 fx_noise = [0.14, 0.35, 0.94, 1.98, 3.34, 0.14, 0.05, 0.2, 1.02, 2.37, 0.97, 0.29, 0, 0.2, 0.97, 2.59, 0.98, 0.3, 0.03, 0.36, 4.75, 2.56, 1.17, 0.29, 0.2]
-theta = [0.261, 0.261, -0.48]
+theta = [0.261, 0.261, -0.481]
 
 weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 bootstrap = bootstrap_sample(len(x),len(x))
 
 print(least_squares_objective_function(theta, test_func, x, fx_exact, w = weight, b = bootstrap, args = None, kwargs = None, multiprocess = False))
-print(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_exact, weight, bootstrap)))
+print(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_noise, weight, bootstrap)))
 
 result = []
-for i in range(2000):
+for i in range(100):
     bootstrap = bootstrap_sample(len(x), len(x))
-    result.append(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_exact, weight, bootstrap)))
+    result.append(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_noise, weight, bootstrap)))
 
 for i in x:
     print(test_func(i, 0.264, 0.264, -0.491))
