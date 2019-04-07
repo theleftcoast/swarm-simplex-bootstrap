@@ -242,8 +242,8 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     const = constraints_check(constraints)
 
     # Validate the initial point is in the problem space defined by the bounds and constraints.
-    if infinity_check(x0) == True:
-        raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
+    if infinity_check(x0):
+        raise ValueError('x0 must be inside the problem space defined by the bounds and constraints')
 
     # Initialize a termination variable
     counter = 0
