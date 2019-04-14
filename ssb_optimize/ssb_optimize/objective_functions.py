@@ -5,6 +5,11 @@ These have odd topologies and a well-known global minimum; they're good for trap
 """
 import numpy as np
 
+def quadratic(x,a,b,c,d,e,f):
+    """
+    Name: Quadratic
+    """
+    return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
 
 def sphere(args):
     """
@@ -36,7 +41,6 @@ def rastrigin(args):
     for i in args:
         rast += i** 2 - a * np.cos(2 * np.pi * i ** 2)
     return rast
-
 
 def ackley(args):
     """

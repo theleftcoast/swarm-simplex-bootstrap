@@ -1,4 +1,4 @@
-from optimizer import nelder_mead
+#import optimizer as opt
 import numpy as np
 import multiprocessing
 import pandas as pd
@@ -21,7 +21,8 @@ def bootstrap_sample(array_size, sample_size):
     return bootstrap_result
 
 def function_wrapper(argument):
-    ''' Takes a single argument, unpacks it to args and kwargs components, and passes them to func. This gets around the
+    '''
+    Takes a single argument, unpacks it to args and kwargs components, and passes them to func. This gets around the
     fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument.   This doesn't allow us to pass
     multiple args and kwargs which is a problem.  Build a single argument from all input args and kwargs and then call
     func_wrapper in the Pool method.
@@ -33,7 +34,6 @@ def function_wrapper(argument):
     improve efficiency.
 
     objective_function_element_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
-
     '''
     func, theta, x, fx, w, b, args, kwargs = argument
     return (w*b)*(func(x, *theta, *args, **kwargs)-fx)**2.0 if w > 0.0 and b > 0 else 0.0
@@ -119,54 +119,51 @@ def least_squares_objective_function(theta, func, x, fx, w = None, b = None, arg
 
     return np.sum(results)
 
-def test_func(x, a, b, c):
-    return a*x[0]**2 + b*x[1]**2 + c*x[0]*x[1]
-
-x = [[-2.0, -2.0],
-    [-1.0, -2.0],
-    [0.0, -2.0],
-    [1.0, -2.0],
-    [2.0, -2.0],
-    [-2.0, -2.0],
-    [-1.0, -1.0],
-    [0.0, -1.0],
-    [1.0, -1.0],
-    [2.0, -1.0],
-    [-2.0, 0.0],
-    [-1.0, 0.0],
-    [0.0, 0.0],
-    [1.0, 0.0],
-    [2.0, 0.0],
-    [-2.0, 1.0],
-    [-1.0, 1.0],
-    [0.0, 1.0],
-    [1.0, 1.0],
-    [2.0, 1.0],
-    [-2.0, 2.0],
-    [-1.0, 2.0],
-    [0.0, 2.0],
-    [1.0, 2.0],
-    [2.0, 2.0]]
-
-fx_exact = [0.16, 0.34, 1.04, 2.26, 4, 0.16, 0.04, 0.26, 1, 2.26, 1.04, 0.26, 0, 0.26, 1.04, 2.26, 1, 0.26, 0.04, 0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
-fx_noise = [0.14, 0.35, 0.94, 1.98, 3.34, 0.14, 0.05, 0.2, 1.02, 2.37, 0.97, 0.29, 0, 0.2, 0.97, 2.59, 0.98, 0.3, 0.03, 0.36, 4.75, 2.56, 1.17, 0.29, 0.2]
-theta = [0.261, 0.261, -0.481]
-
-weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-bootstrap = bootstrap_sample(len(x),len(x))
-
-print(least_squares_objective_function(theta, test_func, x, fx_exact, w = weight, b = bootstrap, args = None, kwargs = None, multiprocess = False))
-print(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_noise, weight, bootstrap)))
-
-result = []
-for i in range(100):
-    bootstrap = bootstrap_sample(len(x), len(x))
-    result.append(nelder_mead(theta, least_squares_objective_function, args=(test_func, x, fx_noise, weight, bootstrap)))
-
-for i in x:
-    print(test_func(i, 0.264, 0.264, -0.491))
-
-df = pd.DataFrame(result, columns = ['a', 'b', 'c'])
-print(df.describe())
-pd.plotting.scatter_matrix(df)
-plt.show()
+# def quadratic(x, a, b, c, d, e, f):
+#     return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+#
+# x = [[-2.0, -2.0],
+#     [-1.0, -2.0],
+#     [0.0, -2.0],
+#     [1.0, -2.0],
+#     [2.0, -2.0],
+#     [-2.0, -2.0],
+#     [-1.0, -1.0],
+#     [0.0, -1.0],
+#     [1.0, -1.0],
+#     [2.0, -1.0],
+#     [-2.0, 0.0],
+#     [-1.0, 0.0],
+#     [0.0, 0.0],
+#     [1.0, 0.0],
+#     [2.0, 0.0],
+#     [-2.0, 1.0],
+#     [-1.0, 1.0],
+#     [0.0, 1.0],
+#     [1.0, 1.0],
+#     [2.0, 1.0],
+#     [-2.0, 2.0],
+#     [-1.0, 2.0],
+#     [0.0, 2.0],
+#     [1.0, 2.0],
+#     [2.0, 2.0]]
+#
+# fx_exact = [0.16, 0.34, 1.04, 2.26, 4, 0.16, 0.04, 0.26, 1, 2.26, 1.04, 0.26, 0, 0.26, 1.04, 2.26, 1, 0.26, 0.04, 0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
+# fx_noise = [0.14, 0.35, 0.94, 1.98, 3.34, 0.14, 0.05, 0.2, 1.02, 2.37, 0.97, 0.29, 0, 0.2, 0.97, 2.59, 0.98, 0.3, 0.03, 0.36, 4.75, 2.56, 1.17, 0.29, 0.2]
+# theta = [0.261, 0.261, 0.0, 0.0,-0.481, 0]
+#
+# weight = None # [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+# bootstrap = None # bootstrap_sample(len(x),len(x))
+#
+# print(least_squares_objective_function(theta, quadratic, x, fx_exact, w = weight, b = bootstrap, args = None, kwargs = None, multiprocess = False))
+# print(opt.nelder_mead(theta, least_squares_objective_function, args=(quadratic, x, fx_exact, weight, bootstrap)))
+#
+# result = []
+# for i in range(100):
+#     bootstrap = bootstrap_sample(len(x), len(x))
+#     result.append(opt.nelder_mead(theta, least_squares_objective_function, args=(quadratic, x, fx_exact, weight, bootstrap)))
+#
+# df = pd.DataFrame(result, columns = ['a', 'b', 'c', 'd', 'e', 'f'])
+# print(df.describe())
+# pd.plotting.scatter_matrix(df)
+# plt.show()
