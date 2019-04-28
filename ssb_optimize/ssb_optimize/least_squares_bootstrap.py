@@ -1,8 +1,9 @@
-#import optimizer as opt
+import optimizer as opt
+# from ssb_optimize.optimizer import nelder_mead
 import numpy as np
 import multiprocessing
-import pandas as pd
-import matplotlib.pyplot as plt
+# import pandas as pd
+# import matplotlib.pyplot as plt
 
 NUM_CPUS = multiprocessing.cpu_count()
 NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
@@ -119,50 +120,67 @@ def least_squares_objective_function(theta, func, x, fx, w = None, b = None, arg
 
     return np.sum(results)
 
-# def quadratic(x, a, b, c, d, e, f):
-#     return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
-#
-# x = [[-2.0, -2.0],
-#     [-1.0, -2.0],
-#     [0.0, -2.0],
-#     [1.0, -2.0],
-#     [2.0, -2.0],
-#     [-2.0, -2.0],
-#     [-1.0, -1.0],
-#     [0.0, -1.0],
-#     [1.0, -1.0],
-#     [2.0, -1.0],
-#     [-2.0, 0.0],
-#     [-1.0, 0.0],
-#     [0.0, 0.0],
-#     [1.0, 0.0],
-#     [2.0, 0.0],
-#     [-2.0, 1.0],
-#     [-1.0, 1.0],
-#     [0.0, 1.0],
-#     [1.0, 1.0],
-#     [2.0, 1.0],
-#     [-2.0, 2.0],
-#     [-1.0, 2.0],
-#     [0.0, 2.0],
-#     [1.0, 2.0],
-#     [2.0, 2.0]]
-#
-# fx_exact = [0.16, 0.34, 1.04, 2.26, 4, 0.16, 0.04, 0.26, 1, 2.26, 1.04, 0.26, 0, 0.26, 1.04, 2.26, 1, 0.26, 0.04, 0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
-# fx_noise = [0.14, 0.35, 0.94, 1.98, 3.34, 0.14, 0.05, 0.2, 1.02, 2.37, 0.97, 0.29, 0, 0.2, 0.97, 2.59, 0.98, 0.3, 0.03, 0.36, 4.75, 2.56, 1.17, 0.29, 0.2]
-# theta = [0.261, 0.261, 0.0, 0.0,-0.481, 0]
-#
-# weight = None # [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-# bootstrap = None # bootstrap_sample(len(x),len(x))
-#
-# print(least_squares_objective_function(theta, quadratic, x, fx_exact, w = weight, b = bootstrap, args = None, kwargs = None, multiprocess = False))
-# print(opt.nelder_mead(theta, least_squares_objective_function, args=(quadratic, x, fx_exact, weight, bootstrap)))
-#
+def least_squares_bootstrap(theta, func, x, fx, weight = None, samples = 500):
+    """
+    The 'least_squares_boostrap' function returns a list of tuples containing the results (thetas) of repeated
+    evaluation of the 'least_squares_objective_function' where the 'bootstrap' multiplier is used to drive random
+    sampling from 'x', 'fx', and 'weight' with replacement. This list of tuples can be used to estimate the distribution
+    of each element of theta.
+    """
+    result = []
+    for i in range(samples):
+        bootstrap = bootstrap_sample(len(x), len(x))
+        result.append(opt.nelder_mead(theta, least_squares_objective_function, args=(func, x, fx, weight, bootstrap)))
+    return result
+
+def quadratic(x, a, b, c, d, e, f):
+    return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+
+x = [[-2.0, -2.0],
+    [-1.0, -2.0],
+    [0.0, -2.0],
+    [1.0, -2.0],
+    [2.0, -2.0],
+    [-2.0, -2.0],
+    [-1.0, -1.0],
+    [0.0, -1.0],
+    [1.0, -1.0],
+    [2.0, -1.0],
+    [-2.0, 0.0],
+    [-1.0, 0.0],
+    [0.0, 0.0],
+    [1.0, 0.0],
+    [2.0, 0.0],
+    [-2.0, 1.0],
+    [-1.0, 1.0],
+    [0.0, 1.0],
+    [1.0, 1.0],
+    [2.0, 1.0],
+    [-2.0, 2.0],
+    [-1.0, 2.0],
+    [0.0, 2.0],
+    [1.0, 2.0],
+    [2.0, 2.0]]
+
+fx_exact = [0.16, 0.34, 1.04, 2.26, 4, 0.16, 0.04, 0.26, 1, 2.26, 1.04, 0.26, 0, 0.26, 1.04, 2.26, 1, 0.26, 0.04, 0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
+fx_noise = [0.14, 0.35, 0.94, 1.98, 3.34, 0.14, 0.05, 0.2, 1.02, 2.37, 0.97, 0.29, 0, 0.2, 0.97, 2.59, 0.98, 0.3, 0.03, 0.36, 4.75, 2.56, 1.17, 0.29, 0.2]
+theta = [0.261, 0.261, 0.0, 0.0,-0.481, 0]
+
+weight = None # [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+bootstrap = None # bootstrap_sample(len(x),len(x))
+
+print(least_squares_objective_function(theta, quadratic, x, fx_exact, w = weight, b = bootstrap, args = None, kwargs = None, multiprocess = False))
+print(opt.nelder_mead(theta, least_squares_objective_function, args=(quadratic, x, fx_exact, weight, bootstrap)))
+
+for i in least_squares_bootstrap(theta, quadratic, x, fx_exact, weight):
+    print(i)
+
 # result = []
 # for i in range(100):
 #     bootstrap = bootstrap_sample(len(x), len(x))
 #     result.append(opt.nelder_mead(theta, least_squares_objective_function, args=(quadratic, x, fx_exact, weight, bootstrap)))
-#
+# print(result)
+
 # df = pd.DataFrame(result, columns = ['a', 'b', 'c', 'd', 'e', 'f'])
 # print(df.describe())
 # pd.plotting.scatter_matrix(df)

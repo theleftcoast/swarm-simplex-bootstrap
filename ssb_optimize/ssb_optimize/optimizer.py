@@ -75,10 +75,16 @@ def constraints_check(constraints=None):
     return constraints
 
 def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
+    """
+    Evaluate function and add a penalty (np.inf) if bounds or constraints are violated.
+    """
     penalty_value = penalty(x, bounds, constraints)
     return func(x, *args, **kwargs) + penalty_value
 
 def penalty(x, bounds=None, constraints=None):
+    """
+    Return a penalty value (np.inf) if the input vector violates  bounds or constraints.
+    """
     penalty_value = 0.0
     if bounds is not None:
         for i, bound in enumerate(bounds):
@@ -106,13 +112,15 @@ def penalty(x, bounds=None, constraints=None):
 
 def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4):
     """
-    Explore the space defined by bounds and constraints using grid generated points.
+    Generate list of feasible points that satisfies the bounds and constraints (starting from a grid of initial points).
     """
+    # Check validity of inputs.
     if not isinstance(grid_size, int):
         raise TypeError('grid_size must be an integer')
     if not isinstance(inf_repl, numbers.Number):
         raise TypeError('inf_repl must be a number')
-    # Transform infinite bound values (-inf and inf) into finite bound values
+
+    # Replace infinite bound values (-np.inf and np.inf) with finite value specified in inf_repl.
     lower = np.zeros(len(bounds))
     upper = np.zeros(len(bounds))
     for i, bound in enumerate(bounds):
@@ -127,13 +135,13 @@ def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4
             upper[i] = u
     finite_bounds = np.array(list(zip(lower, upper)))
 
-    # Create a list of arrays that contain evenly spaced numbers spanning each bounded dimension
+    # Create a list of arrays containing evenly spaced numbers spanning each bounded dimension.
     bound_arrays = [np.linspace(*bound, grid_size) for bound in finite_bounds]
 
-    # Create list of points from the cartesian product of all bound arrays covering entire bounded space
+    # Create list of points from the cartesian product of all bound arrays covering entire bounded space.
     list_of_points = np.array(list(itertools.product(*bound_arrays)))
 
-    # Evaluate the penalty fuction at each point in the list of points
+    # Evaluate penalty function at each point in list_of_points.
     penalty_function_values = np.apply_along_axis(penalty, axis=1, arr=list_of_points, bounds=bounds,
                                                   constraints=constraints)
 
@@ -146,21 +154,22 @@ def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4
 
     return fraction_violated, np.array(feasible_points)
 
-def feasible_points_random(bounds, constraints=None, point_count=45, max_iter=None, inf_repl=10.0 ** 4):
+def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0 ** 4):
     """
-    Explore the space defined by bounds and constraints using randomly generated points.
+    Generate list of feasible points that satisfies the bounds and constraints (starting from random initial points).
     Potential issue: Might be able to remove infinite value check.
     """
+    # Check validity of inputs.
     if not isinstance(point_count, int):
         raise TypeError('point_count must be an integer')
     if max_iter is None:
-        max_iter = point_count * 20
+        max_iter = point_count * 100
     if not isinstance(max_iter, int):
         raise TypeError('max_iter must be an integer')
     if not isinstance(inf_repl, numbers.Number):
         raise TypeError('inf_repl must be a number')
 
-    # Transform infinite bound values (-inf and inf) into finite bound values
+    # Replace infinite bound values (-np.inf and np.inf) with finite value specified in inf_repl.
     lower = np.zeros(len(bounds))
     upper = np.zeros(len(bounds))
     for i, bound in enumerate(bounds):
@@ -175,10 +184,11 @@ def feasible_points_random(bounds, constraints=None, point_count=45, max_iter=No
             upper[i] = u
     finite_bounds = np.array(list(zip(lower, upper)))
 
-    # Create a list of arrays that contain evenly spaced numbers spanning each bounded dimension
+    # Create lists to hold the feasible and infeasible points that are generated.
     feasible_points = []
     infeasible_points = []
 
+    # Generate random values within the limits defined by bounds and evaluate if each point satisfies constraints.
     while len(feasible_points) < point_count and len(feasible_points) + len(infeasible_points) < max_iter:
         random_vector = [np.random.uniform(bound[0], bound[1]) for bound in finite_bounds]
         penalty_function_value = penalty(random_vector, bounds=bounds, constraints=constraints)
@@ -195,12 +205,14 @@ def feasible_points_random(bounds, constraints=None, point_count=45, max_iter=No
 def best_point(points, func, args=(), kwargs={}):
     """
     Return the point corresponding to the lowest evaluated value of func.
+    TODO: Multiprocessing option cleanup.
     """
     # Evaluate function for every feasible vector in point
-    cpu_count = multiprocessing.cpu_count()
-    processes = max([1, cpu_count - 1])
-    mp_pool = multiprocessing.Pool(processes)
-    func_values = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), points))
+    # cpu_count = multiprocessing.cpu_count()
+    # processes = max([1, cpu_count - 1])
+    # mp_pool = multiprocessing.Pool(processes)
+    # func_values = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), points))
+    func_values = np.apply_along_axis(func,1,points,*args,**kwargs)
     ordered = np.argsort(func_values)
 
     return points[ordered[0], :]
@@ -225,14 +237,13 @@ def infinity_check(x):
     element_check = np.isinf(x)
     return np.any(element_check)
 
-def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-14, flat_tol=10.0**-14,
+def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-15,
                 max_iter=10000, max_bisect_iter=100, initial_size = 0.01):
     """ 
     Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
     the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
     TODO: Bounds/constraints are implemented, but the test cases all pass 'none' to both. Build bounded/constrained tests.
-    TODO: Consider improving handling of shrink step function evaluation (parallelize??)
     """
     # penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
     # func(x, *args, **kwargs)
@@ -242,11 +253,8 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     const = constraints_check(constraints)
 
     # Validate the initial point is in the problem space defined by the bounds and constraints.
-    if infinity_check(x0) == True:
+    if infinity_check(penalty(x0, bound, const)) == True:
         raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
-
-    # Initialize a termination variable
-    counter = 0
 
     # Initialize simplex
     simplex = create_simplex(x0,initial_size)
@@ -260,10 +268,10 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     # function evaluates to +/- np.inf, then this likely signals a bound or constraint violation.  One reason this
     # could happen is that the simplex is too big to fit inside the bounded and constrained problem space.  A good
     # check to see if bounds and constraints that define the problem space are reasonably 'well conditioned' is to run
-    # feasible_points_random and check that fraction_violated is in the range 0.01-1.00.  If fraction_violated is <0.01,
+    # feasible_points_random and check that fraction_violated is in the range 0.05-1.00.  If fraction_violated is <0.05,
     # then we know that the bounded and constrained problem space (the feasible problem space) is a tiny fraction of the
-    # bounded space which means we should re-consider the problem spaced passed to nedler_mead. If fraction_violated is
-    # in the range 0.01-1.00, then we bisect the simplex size, generate a new simplex, and and re-evaluate the objective
+    # bounded space which means we should reevaluate the problem spaced passed to nedler_mead. If fraction_violated is
+    # in the range 0.05-1.00, then we bisect the simplex size, generate a new simplex, and and re-evaluate the objective
     # function at all points. If the bisection routine doesn't yield a valid simplex (where the objective function
     # evaluates to finite values for all points) after 100 iterations, then the initial point could be very close to a
     # bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value that is
@@ -309,6 +317,7 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         second_highest = simplex[ordered[-2],:]
         highest = simplex[ordered[-1],:]
         centroid = simplex[ordered[0:-1],:].mean(axis = 0)
+
         # Objective function evaluated at each simplex point from above.
         f_highest = f_simplex[ordered[-1]]
         f_second_highest = f_simplex[ordered[-2]]
@@ -318,7 +327,6 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         reflection = centroid + r*(centroid-highest)
         # Used to be func(reflection, *args, **kwargs)
         f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
-
 
         if f_reflection < f_lowest:
             # Evaluate expansion.
@@ -382,3 +390,147 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         print(inside_contraction_count)
         print(shrink_count)
     return simplex[ordered[0]]
+
+def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
+                max_iter=2000):
+    """
+    Particle swarm optimization.
+    TODO: Create multiprocessing switch
+    """
+
+    # Validate bounds list and constraints dictionary
+    n = len(bounds)
+    bound = bounds_check(n, bounds)
+    const = constraints_check(constraints)
+
+    # Initialize parallel processing variables
+    # cpu_count = multiprocessing.cpu_count()
+    # processes = 1 if (cpu_count - 1) <= 1 else cpu_count - 1
+    # mp_pool = multiprocessing.Pool(processes)
+
+    # Initialize swarm with random points that satisfy conditions laid out in bounds and constraints.
+    fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const)
+
+    # Initialize particle swarm algorithm constants.
+    swarm_size = len(feasible_points)
+    dimension = len(feasible_points[0])
+    cognitive_parameter = 1.49
+    social_parameter = 1.49
+    velocity_weight = 0.73
+    neighborhood_size = 5
+
+    # Initialize termination tracking and iteration tracking variables
+    small = 1.0
+    flat = 1.0
+    counter = 0
+
+    if DEBUG:
+        print("Swarm Size: {}".format(swarm_size))
+        print("Problem Dimension: {}".format(dimension))
+
+    # Initialize swarm position and velocity.
+    current_position = feasible_points.copy()
+    current_velocity = np.zeros(shape=(swarm_size,dimension))
+
+    # Create velocity clamping vector to prevent swarm explosion.
+    velocity_limit = np.zeros(shape=swarm_size)
+
+    if DEBUG:
+        print("Initial Position:")
+        print(current_position)
+        print("Initial Velocity:")
+        print(current_velocity)
+
+    # Initialize personal best and neighborhood best variables.
+    personal_best_position = np.zeros(shape=(swarm_size,dimension))
+    personal_best_value = np.full(shape=swarm_size,fill_value=np.inf)
+    neighborhood_best_position = np.zeros(shape=(swarm_size,dimension))
+    neighborhood_best_value = np.full(shape=swarm_size,fill_value=np.inf)
+
+    while counter < max_iter:
+
+        # Calculate function values at current swarm position.
+        # TODO: try multiprocess with penalized_func(x , func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+        # current_func_value = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), current_position))
+        # current_penalty_value = np.array(mp_pool.map(functools.partial(penalty, bounds=bounds, constraints=constraints), current_position))
+        # current_combined_value = current_func_value + current_penalty_value
+
+        # penalized_func_kwargs = {"args":args, "kwargs":kwargs, "bounds":bound, "constraints":constraints}
+
+        current_combined_value = np.apply_along_axis(penalized_func, 1, current_position, func,
+                                                     args=args, kwargs=kwargs, bounds=bound, constraints=const)
+
+        # Evaluate termination variables.
+        ordered = np.argsort(current_combined_value)
+        flat = np.absolute(current_combined_value[ordered[0]]-current_combined_value[ordered[1]])
+        small = np.linalg.norm(current_position[ordered[0]]-current_position[ordered[1]])
+
+        # Evaluate if termination criteria are met and break while loop if so.
+        if small < small_tol:
+            print("Break due to small_tol criteria.")
+            break
+
+        if flat < flat_tol:
+            print("Break due to flat_tol criteria.")
+            break
+
+        if DEBUG:
+            print("-----------------------------")
+            print("Counter: {}".format(counter))
+            print("Current Position:")
+            print(current_position)
+            print("Current Combined Value:")
+            print(current_combined_value)
+            print("Current Minimum Value: {}".format(current_combined_value[ordered[0]]))
+
+        # Update personal best values and positions.
+        personal_best_value_update = np.less(current_combined_value,personal_best_value)
+        personal_best_position_update = np.tile(personal_best_value_update,(dimension,1)).transpose()
+        personal_best_value = np.where(personal_best_value_update,current_combined_value,personal_best_value)
+        personal_best_position = np.where(personal_best_position_update,current_position,personal_best_position)
+
+        # Update neighborhood best values and positions.
+        for i in np.arange(swarm_size):
+            positions = np.take(current_position,range(i,i+neighborhood_size),axis=0, mode='wrap')
+            values = np.take(current_combined_value,range(i,i+neighborhood_size),axis=0, mode='wrap')
+            ordered = np.argsort(values)
+            neighborhood_best_position[i] = positions[ordered[0]]
+            neighborhood_best_value[i] = values[ordered[0]]
+
+        if DEBUG:
+            print("Personal Best Value:")
+            print(personal_best_value)
+            print("Personal Best Position:")
+            print(personal_best_position)
+            print("Neighborhood Best Value:")
+            print(neighborhood_best_value)
+            print("Neighborhood Best Position:")
+            print(neighborhood_best_position)
+
+        # Generate random numbers for use in evaluating velocity components.
+        cognitive_random = np.random.uniform(size=(swarm_size,dimension))
+        social_random = np.random.uniform(size=(swarm_size,dimension))
+
+        # Evaluate velocity components.
+        cognitive_component = cognitive_parameter*cognitive_random*(personal_best_position-current_position)
+        social_component = social_parameter*social_random*(neighborhood_best_position-current_position)
+        momentum_component = velocity_weight*current_velocity
+
+        # Evaluate velocity and use velocity to calculate new position.
+        # TODO: Implement velocity clamping.
+        new_velocity = momentum_component + social_component + cognitive_component
+        new_velocity_clamped = new_velocity
+        new_position = current_position + new_velocity_clamped
+
+        if DEBUG:
+            print("Velocity:")
+            print(new_velocity)
+
+        # Update current position and iteration variable
+        current_position = new_position.copy()
+        current_velocity = new_velocity.copy()
+        counter = counter + 1
+
+    final_ordered = np.argsort(personal_best_value)
+
+    return personal_best_position[final_ordered[0]]
