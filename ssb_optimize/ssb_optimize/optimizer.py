@@ -1,11 +1,6 @@
 import numpy as np
 import itertools
-import functools
-import multiprocessing
 import numbers
-import types
-
-DEBUG = False  # Controls debugging print statements
 
 def bounds_check(n, bounds=None):
     """
@@ -309,9 +304,6 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     shrink_count = 0
 
     while small > small_tol and flat > flat_tol and counter < max_iter:
-        if DEBUG:
-            print(f_simplex)
-
         # Worst, second worst, and best simplex points.
         lowest = simplex[ordered[0],:]
         second_highest = simplex[ordered[-2],:]
@@ -383,30 +375,18 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
             flat = np.absolute(f_simplex[ordered[-1]]-f_simplex[ordered[0]])
             small = np.linalg.norm(simplex[ordered[-1]]-simplex[ordered[0]])
         counter = counter + 1
-    if DEBUG:
-        print(reflection_count)
-        print(expansion_count)
-        print(outside_contraction_count)
-        print(inside_contraction_count)
-        print(shrink_count)
+
     return simplex[ordered[0]]
 
 def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
                 max_iter=2000):
     """
     Particle swarm optimization.
-    TODO: Create multiprocessing switch
     """
-
     # Validate bounds list and constraints dictionary
     n = len(bounds)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
-
-    # Initialize parallel processing variables
-    # cpu_count = multiprocessing.cpu_count()
-    # processes = 1 if (cpu_count - 1) <= 1 else cpu_count - 1
-    # mp_pool = multiprocessing.Pool(processes)
 
     # Initialize swarm with random points that satisfy conditions laid out in bounds and constraints.
     fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const)
@@ -419,27 +399,9 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
     velocity_weight = 0.73
     neighborhood_size = 5
 
-    # Initialize termination tracking and iteration tracking variables
-    small = 1.0
-    flat = 1.0
-    counter = 0
-
-    if DEBUG:
-        print("Swarm Size: {}".format(swarm_size))
-        print("Problem Dimension: {}".format(dimension))
-
     # Initialize swarm position and velocity.
     current_position = feasible_points.copy()
     current_velocity = np.zeros(shape=(swarm_size,dimension))
-
-    # Create velocity clamping vector to prevent swarm explosion.
-    velocity_limit = np.zeros(shape=swarm_size)
-
-    if DEBUG:
-        print("Initial Position:")
-        print(current_position)
-        print("Initial Velocity:")
-        print(current_velocity)
 
     # Initialize personal best and neighborhood best variables.
     personal_best_position = np.zeros(shape=(swarm_size,dimension))
@@ -447,16 +409,11 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
     neighborhood_best_position = np.zeros(shape=(swarm_size,dimension))
     neighborhood_best_value = np.full(shape=swarm_size,fill_value=np.inf)
 
+    # Begin particle swarm iterations.
+    counter = 0
     while counter < max_iter:
 
         # Calculate function values at current swarm position.
-        # TODO: try multiprocess with penalized_func(x , func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
-        # current_func_value = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), current_position))
-        # current_penalty_value = np.array(mp_pool.map(functools.partial(penalty, bounds=bounds, constraints=constraints), current_position))
-        # current_combined_value = current_func_value + current_penalty_value
-
-        # penalized_func_kwargs = {"args":args, "kwargs":kwargs, "bounds":bound, "constraints":constraints}
-
         current_combined_value = np.apply_along_axis(penalized_func, 1, current_position, func,
                                                      args=args, kwargs=kwargs, bounds=bound, constraints=const)
 
@@ -467,21 +424,9 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
 
         # Evaluate if termination criteria are met and break while loop if so.
         if small < small_tol:
-            print("Break due to small_tol criteria.")
             break
-
-        if flat < flat_tol:
-            print("Break due to flat_tol criteria.")
+        elif flat < flat_tol:
             break
-
-        if DEBUG:
-            print("-----------------------------")
-            print("Counter: {}".format(counter))
-            print("Current Position:")
-            print(current_position)
-            print("Current Combined Value:")
-            print(current_combined_value)
-            print("Current Minimum Value: {}".format(current_combined_value[ordered[0]]))
 
         # Update personal best values and positions.
         personal_best_value_update = np.less(current_combined_value,personal_best_value)
@@ -497,16 +442,6 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
             neighborhood_best_position[i] = positions[ordered[0]]
             neighborhood_best_value[i] = values[ordered[0]]
 
-        if DEBUG:
-            print("Personal Best Value:")
-            print(personal_best_value)
-            print("Personal Best Position:")
-            print(personal_best_position)
-            print("Neighborhood Best Value:")
-            print(neighborhood_best_value)
-            print("Neighborhood Best Position:")
-            print(neighborhood_best_position)
-
         # Generate random numbers for use in evaluating velocity components.
         cognitive_random = np.random.uniform(size=(swarm_size,dimension))
         social_random = np.random.uniform(size=(swarm_size,dimension))
@@ -517,14 +452,8 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
         momentum_component = velocity_weight*current_velocity
 
         # Evaluate velocity and use velocity to calculate new position.
-        # TODO: Implement velocity clamping.
         new_velocity = momentum_component + social_component + cognitive_component
-        new_velocity_clamped = new_velocity
-        new_position = current_position + new_velocity_clamped
-
-        if DEBUG:
-            print("Velocity:")
-            print(new_velocity)
+        new_position = current_position + new_velocity
 
         # Update current position and iteration variable
         current_position = new_position.copy()
