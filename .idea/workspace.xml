@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d0caa5dd-6130-470a-a14c-3a07b65199c0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -16,8 +15,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="453" column="71" selection-start-line="453" selection-start-column="71" selection-end-line="453" selection-end-column="71" />
+            <state relative-caret-position="221">
+              <caret line="217" column="4" selection-start-line="217" selection-start-column="4" selection-end-line="217" selection-end-column="4" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -55,11 +54,16 @@
       <find>test_func</find>
       <find>penalized</find>
       <find>nelder</find>
-      <find>print</find>
       <find>multiprocess</find>
       <find>cpu_count</find>
       <find>max</find>
       <find>DEBUG</find>
+      <find>print</find>
+      <find>*</find>
+      <find>**</find>
+      <find>+</find>
+      <find>-</find>
+      <find>/</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -541,8 +545,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="453" column="71" selection-start-line="453" selection-start-column="71" selection-end-line="453" selection-end-column="71" />
+        <state relative-caret-position="221">
+          <caret line="217" column="4" selection-start-line="217" selection-start-column="4" selection-end-line="217" selection-end-column="4" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>

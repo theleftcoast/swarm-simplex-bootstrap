@@ -2,15 +2,17 @@ import numpy as np
 import itertools
 import numbers
 
-def bounds_check(n, bounds=None):
-    """
-    Check bounds list passed to optimizer for internal consistency.
-    """
-    if bounds is None:
-        bounds = [(None, None)] * n
-    if len(bounds) != n:
-        raise ValueError('length of bounds list must equal dimension of x passed to func')
 
+def bounds_check(n, bounds=None):
+    """Check bounds list of size 'n' for consistency and return the list with basic issues corrected."""
+    # Check validity of inputs.
+    if not isinstance(n, int):
+        raise TypeError('n must be an integer')
+
+    if bounds is None:
+        bounds = [(None, None)]*n
+    if len(bounds) != n:
+        raise ValueError('length of bounds list must equal dimension n passed to func')
     lower = np.zeros(n)
     upper = np.zeros(n)
     for i, bound in enumerate(bounds):
@@ -20,31 +22,29 @@ def bounds_check(n, bounds=None):
         elif not isinstance(bound, tuple) or len(bound) != 2:
             raise TypeError('bounds[%d] must be a (min, max) tuple' % i)
         else:
-            l, u = bound
-            if l is None:
+            lb, ub = bound
+            if lb is None:
                 lower[i] = -np.inf
-            elif isinstance(l, numbers.Number):
-                lower[i] = l
+            elif isinstance(lb, numbers.Number):
+                lower[i] = lb
             else:
                 raise TypeError('bounds[%d] min value must be a number' % i)
-            if u is None:
+            if ub is None:
                 upper[i] = np.inf
-            elif isinstance(u, numbers.Number):
-                upper[i] = u
+            elif isinstance(ub, numbers.Number):
+                upper[i] = ub
             else:
                 raise TypeError('bounds[%d] max value must be a number' % i)
     bounds = np.array(list(zip(lower, upper)))
-
     for i, bound in enumerate(bounds):
-        l, u = bound
-        if u - l <= 0:
+        lb, ub = bound
+        if ub - lb <= 0:
             raise ValueError('bounds[%d] min must be less than max' % i)
     return bounds
 
+
 def constraints_check(constraints=None):
-    """
-    Check constraints dictionary passed to optimizer for internal consistency.
-    """
+    """Check constraints dictionary for consistency and return the dictionary with basic issues corrected."""
     if constraints is not None:
         if not isinstance(constraints, list):
             raise TypeError('constraints must be a list of dictionaries')
@@ -69,24 +69,21 @@ def constraints_check(constraints=None):
                 raise TypeError('constraints[%d]["kwargs"] must be a dictionary' % i)
     return constraints
 
+
 def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
-    """
-    Evaluate function and add a penalty (np.inf) if bounds or constraints are violated.
-    """
+    """Evaluate function and add a penalty (np.inf) if bounds or constraints are violated."""
     penalty_value = penalty(x, bounds, constraints)
     return func(x, *args, **kwargs) + penalty_value
 
+
 def penalty(x, bounds=None, constraints=None):
-    """
-    Return a penalty value (np.inf) if the input vector violates  bounds or constraints.
-    """
+    """Return a penalty value (which is np.inf) if the input vector violates either the bounds or constraints."""
     penalty_value = 0.0
     if bounds is not None:
         for i, bound in enumerate(bounds):
             if bound[0] > x[i] or bound[1] < x[i]:
                 penalty_value = np.inf
                 break
-
     if constraints is not None:
         for i, const in enumerate(constraints):
             const_value = const['func'](x, *const['args'], **const['kwargs'])
@@ -102,87 +99,74 @@ def penalty(x, bounds=None, constraints=None):
             if const['type'] == '<=0' and const_value > 0.0:
                 penalty_value = np.inf
                 break
-
     return penalty_value
 
+
 def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4):
-    """
-    Generate list of feasible points that satisfies the bounds and constraints (starting from a grid of initial points).
-    """
+    """Generate list of feasible points from a grid which satisfy the bounds and constraints."""
     # Check validity of inputs.
     if not isinstance(grid_size, int):
         raise TypeError('grid_size must be an integer')
     if not isinstance(inf_repl, numbers.Number):
         raise TypeError('inf_repl must be a number')
-
     # Replace infinite bound values (-np.inf and np.inf) with finite value specified in inf_repl.
     lower = np.zeros(len(bounds))
     upper = np.zeros(len(bounds))
     for i, bound in enumerate(bounds):
-        l, u = bound
-        if np.isinf(l):
+        lb, ub = bound
+        if np.isinf(lb):
             lower[i] = -inf_repl
         else:
-            lower[i] = l
-        if np.isinf(u):
+            lower[i] = lb
+        if np.isinf(ub):
             upper[i] = inf_repl
         else:
-            upper[i] = u
+            upper[i] = ub
     finite_bounds = np.array(list(zip(lower, upper)))
-
     # Create a list of arrays containing evenly spaced numbers spanning each bounded dimension.
     bound_arrays = [np.linspace(*bound, grid_size) for bound in finite_bounds]
-
     # Create list of points from the cartesian product of all bound arrays covering entire bounded space.
     list_of_points = np.array(list(itertools.product(*bound_arrays)))
-
     # Evaluate penalty function at each point in list_of_points.
     penalty_function_values = np.apply_along_axis(penalty, axis=1, arr=list_of_points, bounds=bounds,
                                                   constraints=constraints)
-
-    # Create summary statistic and list of points where all constraints are satisfied
+    # Create summary statistics and list of points where all constraints are satisfied.
     number_of_points = len(list_of_points)
     count_penalty_function_violated = np.count_nonzero(penalty_function_values)
-    fraction_violated = count_penalty_function_violated / number_of_points
+    fraction_violated = count_penalty_function_violated/number_of_points
     indices_violated = np.nonzero(penalty_function_values)
     feasible_points = np.delete(list_of_points, indices_violated, axis=0)
-
     return fraction_violated, np.array(feasible_points)
 
-def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0 ** 4):
-    """
-    Generate list of feasible points that satisfies the bounds and constraints (starting from random initial points).
-    Potential issue: Might be able to remove infinite value check.
-    """
+
+def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0**4):
+    """Generate list of feasible points using random sampling which satisfy the bounds and constraints."""
     # Check validity of inputs.
     if not isinstance(point_count, int):
         raise TypeError('point_count must be an integer')
     if max_iter is None:
-        max_iter = point_count * 100
+        max_iter = point_count*100
     if not isinstance(max_iter, int):
         raise TypeError('max_iter must be an integer')
     if not isinstance(inf_repl, numbers.Number):
         raise TypeError('inf_repl must be a number')
-
     # Replace infinite bound values (-np.inf and np.inf) with finite value specified in inf_repl.
     lower = np.zeros(len(bounds))
     upper = np.zeros(len(bounds))
     for i, bound in enumerate(bounds):
-        l, u = bound
-        if np.isinf(l):
+        lb, ub = bound
+        if np.isinf(lb):
             lower[i] = -inf_repl
         else:
-            lower[i] = l
-        if np.isinf(u):
+            lower[i] = lb
+        if np.isinf(ub):
             upper[i] = inf_repl
         else:
-            upper[i] = u
+            upper[i] = ub
     finite_bounds = np.array(list(zip(lower, upper)))
-
     # Create lists to hold the feasible and infeasible points that are generated.
     feasible_points = []
     infeasible_points = []
-
     # Generate random values within the limits defined by bounds and evaluate if each point satisfies constraints.
     while len(feasible_points) < point_count and len(feasible_points) + len(infeasible_points) < max_iter:
         random_vector = [np.random.uniform(bound[0], bound[1]) for bound in finite_bounds]
@@ -191,73 +175,61 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
             feasible_points.append(random_vector)
         else:
             infeasible_points.append(random_vector)
-
+    # Create summary statistics.
     number_of_points = len(feasible_points) + len(infeasible_points)
-    fraction_violated = len(infeasible_points) / number_of_points
-
+    fraction_violated = len(infeasible_points)/number_of_points
     return fraction_violated, np.array(feasible_points)
 
-def best_point(points, func, args=(), kwargs={}):
-    """
-    Return the point corresponding to the lowest evaluated value of func.
-    TODO: Multiprocessing option cleanup.
-    """
-    # Evaluate function for every feasible vector in point
-    # cpu_count = multiprocessing.cpu_count()
-    # processes = max([1, cpu_count - 1])
-    # mp_pool = multiprocessing.Pool(processes)
-    # func_values = np.array(mp_pool.map(functools.partial(func, *args, **kwargs), points))
-    func_values = np.apply_along_axis(func,1,points,*args,**kwargs)
-    ordered = np.argsort(func_values)
 
+def best_point(points, func, args=(), kwargs={}):
+    """Return the point corresponding to the lowest evaluated value of func."""
+    func_values = np.apply_along_axis(func, 1, points, *args, **kwargs)
+    ordered = np.argsort(func_values)
     return points[ordered[0], :]
 
-def create_simplex(initial,size):
-    """ Create initial simplex. """
+
+def create_simplex(initial, size):
+    """Create initial simplex for the nelder_mead function."""
     n = len(initial)
-    p = (size/(n*2**0.5))*(n-1+(n+1)**0.5)
-    q = (size/(n*2**0.5))*(-1+(n+1)**0.5)
+    p = (size/(n*2**0.5))*(n - 1 + (n + 1)**0.5)
+    q = (size/(n*2**0.5))*(-1 + (n + 1)**0.5)
     identity = np.identity(n)
-    result = np.zeros((n,n))
+    result = np.zeros((n, n))
     for i in range(n):
         result[i] += initial + p*identity[i]
         for j in range(n):
             if j == i:
                 continue
             result[i] += q*identity[j]             
-    return np.row_stack((initial,result))
+    return np.row_stack((initial, result))
+
 
 def infinity_check(x):
     """ Check for +/- np.inf elements. """
     element_check = np.isinf(x)
     return np.any(element_check)
 
-def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-15,
-                max_iter=10000, max_bisect_iter=100, initial_size = 0.01):
-    """ 
-    Nelder-Mead simplex minimization algorithm.  Implementation details can be found in "Implementing 
-    the Nelder-Mead simplex algorithm with adaptive parameters" by Gao and Han
 
-    TODO: Bounds/constraints are implemented, but the test cases all pass 'none' to both. Build bounded/constrained tests.
+def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-15,
+                max_iter=10000, max_bisect_iter=100, initial_size=0.01):
+    """Minimize a scalar function using the Nelder-Mead simplex algorithm.
+
+    Implementation details can be found in "Implementing the Nelder-Mead simplex algorithm with adaptive parameters"
+    by Gao and Han
     """
-    # penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
-    # func(x, *args, **kwargs)
     # Validate bounds list and constraints dictionary
     n = len(x0)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
 
-    # Validate the initial point is in the problem space defined by the bounds and constraints.
-    if infinity_check(penalty(x0, bound, const)) == True:
+    # Validate the initial point is in the problem space defined by bounds and constraints.
+    if infinity_check(penalty(x0, bound, const)):
         raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
 
-    # Initialize simplex
-    simplex = create_simplex(x0,initial_size)
+    # Initialize simplex.
+    simplex = create_simplex(x0, initial_size)
     f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                     constraints=const)
-
-    # Initialize a termination variable
-    counter = 0
 
     # Check that the objective function evaluates to a finite value for all points in the simplex.  If the objective
     # function evaluates to +/- np.inf, then this likely signals a bound or constraint violation.  One reason this
@@ -272,13 +244,13 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     # bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value that is
     # further away from the bounds and constraints that define the problem space.
 
+    counter = 0
     while infinity_check(f_simplex) == True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
         simplex = create_simplex(x0, initial_size)
         f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                         constraints=const)
         counter = counter + 1
-
     if counter >= max_bisect_iter:
         raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints.')
 
@@ -286,17 +258,17 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
 
     # Calculate adaptive parameters improve convergence for higher dimensional problems
     n = len(simplex[0])
-    r = 1.0 # reflection (standard method = 1)
-    e = 1.0+2.0/n # expansion (standard method = 2)
-    c = 0.75-1.0/(2.0*n) # contraction (standard method = 1/2)
-    s = 1.0-1.0/n # shrink (standard method = 1/2)
+    r = 1.0  # reflection (standard method = 1)
+    e = 1.0 + 2.0/n  # expansion (standard method = 2)
+    c = 0.75 - 1.0/(2.0*n)  # contraction (standard method = 1/2)
+    s = 1.0 - 1.0/n  # shrink (standard method = 1/2)
 
-    # Initialize additional termination variables
+    # Initialize termination variables
     small = 1.0
     flat = 1.0
     counter = 0
     
-    # Initialize algorithm performance variables
+    # Initialize algorithm performance tracking variables
     reflection_count = 0
     expansion_count = 0    
     outside_contraction_count = 0
@@ -305,10 +277,10 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
 
     while small > small_tol and flat > flat_tol and counter < max_iter:
         # Worst, second worst, and best simplex points.
-        lowest = simplex[ordered[0],:]
-        second_highest = simplex[ordered[-2],:]
-        highest = simplex[ordered[-1],:]
-        centroid = simplex[ordered[0:-1],:].mean(axis = 0)
+        lowest = simplex[ordered[0], :]
+        second_highest = simplex[ordered[-2], :]
+        highest = simplex[ordered[-1], :]
+        centroid = simplex[ordered[0:-1], :].mean(axis=0)
 
         # Objective function evaluated at each simplex point from above.
         f_highest = f_simplex[ordered[-1]]
@@ -316,70 +288,74 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         f_lowest = f_simplex[ordered[0]]    
 
         # Evaluate reflection.
-        reflection = centroid + r*(centroid-highest)
-        # Used to be func(reflection, *args, **kwargs)
+        reflection = centroid + r*(centroid - highest)
         f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
 
         if f_reflection < f_lowest:
             # Evaluate expansion.
-            expansion = centroid + e * (reflection - centroid)
+            expansion = centroid + e*(reflection - centroid)
             f_expansion = penalized_func(expansion, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_expansion < f_reflection:
                 # Replace highest by expansion
-                simplex[ordered[-1],:] = expansion
+                simplex[ordered[-1], :] = expansion
                 f_simplex[ordered[-1]] = f_expansion
                 expansion_count += 1
             else:
                 # Replace highest by reflection
-                simplex[ordered[-1],:] = reflection
+                simplex[ordered[-1], :] = reflection
                 f_simplex[ordered[-1]] = f_reflection
                 reflection_count += 1
         elif f_reflection < f_second_highest:
             # Replace highest by reflection
-            simplex[ordered[-1],:] = reflection
+            simplex[ordered[-1], :] = reflection
             f_simplex[ordered[-1]] = f_reflection
             reflection_count += 1
         elif f_reflection < f_highest:
             # Evaluate outside contraction.
-            outside_contraction = centroid + c * (reflection - centroid)
-            f_outside_contraction = penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+            outside_contraction = centroid + c*(reflection - centroid)
+            f_outside_contraction = penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
+                                                   constraints=const)
             if f_outside_contraction < f_reflection:
                 # Replace highest by reflection
-                simplex[ordered[-1],:] = outside_contraction
+                simplex[ordered[-1], :] = outside_contraction
                 f_simplex[ordered[-1]] = f_outside_contraction
                 outside_contraction_count += 1
             else:
                 # Replace all but best by shrink
                 for i in ordered:
-                    simplex[i, :] = lowest + s * (simplex[i, :] - lowest)
-                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+                    simplex[i, :] = lowest + s*(simplex[i, :] - lowest)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
+                                                bounds=bound, constraints=const)
                 shrink_count += 1
         else:
             # Evaluate inside contraction.
-            inside_contraction = centroid - c * (reflection - centroid)
-            f_inside_contraction = penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+            inside_contraction = centroid - c*(reflection - centroid)
+            f_inside_contraction = penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
+                                                  constraints=const)
             if f_inside_contraction < f_highest:
                 # Replace highest by contraction
-                simplex[ordered[-1],:] = inside_contraction
+                simplex[ordered[-1], :] = inside_contraction
                 f_simplex[ordered[-1]] = f_inside_contraction
                 inside_contraction_count += 1
             else:
                 # Replace all but best by shrink
                 for i in ordered:
-                    simplex[i,:] = lowest + s*(simplex[i,:]-lowest)
-                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+                    simplex[i, :] = lowest + s*(simplex[i, :] - lowest)
+                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
+                                                bounds=bound, constraints=const)
                 shrink_count += 1
 
         ordered = np.argsort(f_simplex)
-        if infinity_check(f_simplex)==False:
-            flat = np.absolute(f_simplex[ordered[-1]]-f_simplex[ordered[0]])
-            small = np.linalg.norm(simplex[ordered[-1]]-simplex[ordered[0]])
+        if infinity_check(f_simplex) == False:
+            flat = np.absolute(f_simplex[ordered[-1]] - f_simplex[ordered[0]])
+            small = np.linalg.norm(simplex[ordered[-1]] - simplex[ordered[0]])
         counter = counter + 1
 
     return simplex[ordered[0]]
 
-def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
-                max_iter=2000):
+
+def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
+                   max_iter=2000):
     """
     Particle swarm optimization.
     """
@@ -401,13 +377,13 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
 
     # Initialize swarm position and velocity.
     current_position = feasible_points.copy()
-    current_velocity = np.zeros(shape=(swarm_size,dimension))
+    current_velocity = np.zeros(shape=(swarm_size, dimension))
 
     # Initialize personal best and neighborhood best variables.
-    personal_best_position = np.zeros(shape=(swarm_size,dimension))
-    personal_best_value = np.full(shape=swarm_size,fill_value=np.inf)
-    neighborhood_best_position = np.zeros(shape=(swarm_size,dimension))
-    neighborhood_best_value = np.full(shape=swarm_size,fill_value=np.inf)
+    personal_best_position = np.zeros(shape=(swarm_size, dimension))
+    personal_best_value = np.full(shape=swarm_size, fill_value=np.inf)
+    neighborhood_best_position = np.zeros(shape=(swarm_size, dimension))
+    neighborhood_best_value = np.full(shape=swarm_size, fill_value=np.inf)
 
     # Begin particle swarm iterations.
     counter = 0
@@ -419,8 +395,8 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
 
         # Evaluate termination variables.
         ordered = np.argsort(current_combined_value)
-        flat = np.absolute(current_combined_value[ordered[0]]-current_combined_value[ordered[1]])
-        small = np.linalg.norm(current_position[ordered[0]]-current_position[ordered[1]])
+        flat = np.absolute(current_combined_value[ordered[0]] - current_combined_value[ordered[1]])
+        small = np.linalg.norm(current_position[ordered[0]] - current_position[ordered[1]])
 
         # Evaluate if termination criteria are met and break while loop if so.
         if small < small_tol:
@@ -429,26 +405,26 @@ def particle_swarm(func,args=(),kwargs={}, bounds=None, constraints=None, small_
             break
 
         # Update personal best values and positions.
-        personal_best_value_update = np.less(current_combined_value,personal_best_value)
-        personal_best_position_update = np.tile(personal_best_value_update,(dimension,1)).transpose()
-        personal_best_value = np.where(personal_best_value_update,current_combined_value,personal_best_value)
-        personal_best_position = np.where(personal_best_position_update,current_position,personal_best_position)
+        personal_best_value_update = np.less(current_combined_value, personal_best_value)
+        personal_best_position_update = np.tile(personal_best_value_update, (dimension, 1)).transpose()
+        personal_best_value = np.where(personal_best_value_update, current_combined_value, personal_best_value)
+        personal_best_position = np.where(personal_best_position_update, current_position, personal_best_position)
 
         # Update neighborhood best values and positions.
         for i in np.arange(swarm_size):
-            positions = np.take(current_position,range(i,i+neighborhood_size),axis=0, mode='wrap')
-            values = np.take(current_combined_value,range(i,i+neighborhood_size),axis=0, mode='wrap')
+            positions = np.take(current_position, range(i, i + neighborhood_size), axis=0, mode='wrap')
+            values = np.take(current_combined_value, range(i, i + neighborhood_size), axis=0, mode='wrap')
             ordered = np.argsort(values)
             neighborhood_best_position[i] = positions[ordered[0]]
             neighborhood_best_value[i] = values[ordered[0]]
 
         # Generate random numbers for use in evaluating velocity components.
-        cognitive_random = np.random.uniform(size=(swarm_size,dimension))
-        social_random = np.random.uniform(size=(swarm_size,dimension))
+        cognitive_random = np.random.uniform(size=(swarm_size, dimension))
+        social_random = np.random.uniform(size=(swarm_size, dimension))
 
         # Evaluate velocity components.
-        cognitive_component = cognitive_parameter*cognitive_random*(personal_best_position-current_position)
-        social_component = social_parameter*social_random*(neighborhood_best_position-current_position)
+        cognitive_component = cognitive_parameter*cognitive_random*(personal_best_position - current_position)
+        social_component = social_parameter*social_random*(neighborhood_best_position - current_position)
         momentum_component = velocity_weight*current_velocity
 
         # Evaluate velocity and use velocity to calculate new position.
