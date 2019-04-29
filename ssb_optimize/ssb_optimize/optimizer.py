@@ -214,8 +214,26 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
                 max_iter=10000, max_bisect_iter=100, initial_size=0.01):
     """Minimize a scalar function using the Nelder-Mead simplex algorithm.
 
-    Implementation details can be found in "Implementing the Nelder-Mead simplex algorithm with adaptive parameters"
-    by Gao and Han
+    Implementation details can be found in...
+
+    Gao, F., & Han, L. (2010). Implementing the Nelder-Mead simplex algorithm with adaptive parameters. Computational
+        Optimization and Applications, 51(1), 259–277. https://doi.org/10.1007/s10589-010-9329-3
+
+    Args:
+        x0 (list): Vector representing the initial starting point for optimization algorithm.
+        func (callable): Scalar function to be minimized.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func.
+        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
+        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
+        max_bisect_iter (int, optional): Termination criteria for bisection loop in initial simplex generation.
+        initial_size (scalar, optional): Initial simplex size.
+
+    Returns:
+        (np.array): Vector representing the local minimum of func.
     """
     # Validate bounds list and constraints dictionary
     n = len(x0)
@@ -274,11 +292,11 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     outside_contraction_count = 0
     inside_contraction_count = 0
     shrink_count = 0
-
+    # Begin Nelder-Mead iterations.
     while small > small_tol and flat > flat_tol and counter < max_iter:
         # Worst, second worst, and best simplex points.
         lowest = simplex[ordered[0], :]
-        second_highest = simplex[ordered[-2], :]
+        # second_highest = simplex[ordered[-2], :]
         highest = simplex[ordered[-1], :]
         centroid = simplex[ordered[0:-1], :].mean(axis=0)
 
@@ -290,7 +308,7 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         # Evaluate reflection.
         reflection = centroid + r*(centroid - highest)
         f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
-
+        # Compare reflection, expansion, contraction, and shrink operations.
         if f_reflection < f_lowest:
             # Evaluate expansion.
             expansion = centroid + e*(reflection - centroid)
@@ -344,20 +362,36 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
                 f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
                                                 bounds=bound, constraints=const)
                 shrink_count += 1
-
+        # Evaluate termination criteria.
         ordered = np.argsort(f_simplex)
         if infinity_check(f_simplex) == False:
             flat = np.absolute(f_simplex[ordered[-1]] - f_simplex[ordered[0]])
             small = np.linalg.norm(simplex[ordered[-1]] - simplex[ordered[0]])
         counter = counter + 1
-
     return simplex[ordered[0]]
 
 
 def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
                    max_iter=2000):
-    """
-    Particle swarm optimization.
+    """Minimize a scalar function using the Particle Swarm algorithm.
+
+    Local-best algorithm with ring social network structure.  Implementation details can be found in...
+
+    Particle Swarm Optimization. (n.d.). In Computational Intelligence (pp. 289–358). John Wiley & Sons, Ltd.
+        https://doi.org/10.1002/9780470512517.ch16
+
+    Args:
+        func (callable): Scalar function to be minimized.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func.
+        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
+        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
+
+    Returns:
+        (np.array): Vector representing the local minimum of func.
     """
     # Validate bounds list and constraints dictionary
     n = len(bounds)
