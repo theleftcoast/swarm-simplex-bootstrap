@@ -1,5 +1,4 @@
 from ssb_optimize import objective_functions as obj
-from ssb_optimize import least_squares_bootstrap as lsb
 from ssb_optimize import optimizer as opt
 from unittest import TestCase, main
 
@@ -74,7 +73,7 @@ class LSBTestCase(TestCase):
     def test_nelder_mead(self):
         """
         """
-        minimum = opt.nelder_mead(self.theta, lsb.least_squares_objective_function,
+        minimum = opt.nelder_mead(self.theta, opt.least_squares_objective_function,
                               args=(obj.quadratic, self.x, self.fx, self.weight, self.bootstrap))
         self.assertArrayAlmostEqual(minimum, self.theta_min, places=self.precision)
 

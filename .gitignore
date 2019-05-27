@@ -2,3 +2,4 @@
 .ipynb_checkpoints/*    # jupyter artifacts
 *.egg-info              # pip installation artifacts
 .idea			# IDE files
+*.pyc			# pycache files

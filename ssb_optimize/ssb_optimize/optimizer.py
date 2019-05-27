@@ -1,14 +1,15 @@
 import numpy as np
 import itertools
 import numbers
+import multiprocessing
 
 
 def bounds_check(n, bounds=None):
-    """Check bounds list of size 'n' for consistency and return the list with basic issues corrected."""
-    # Check validity of inputs.
+    """Check bounds list of size 'n' for consistency and return the list with basic problems corrected."""
+    # Check validity of 'n'.
     if not isinstance(n, int):
         raise TypeError('n must be an integer')
-
+    # Check validity of the bounds list.
     if bounds is None:
         bounds = [(None, None)]*n
     if len(bounds) != n:
@@ -70,14 +71,8 @@ def constraints_check(constraints=None):
     return constraints
 
 
-def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
-    """Evaluate function and add a penalty (np.inf) if bounds or constraints are violated."""
-    penalty_value = penalty(x, bounds, constraints)
-    return func(x, *args, **kwargs) + penalty_value
-
-
 def penalty(x, bounds=None, constraints=None):
-    """Return a penalty value (which is np.inf) if the input vector violates either the bounds or constraints."""
+    """Return a penalty value (which is np.inf) if the input vector x violates either the bounds or constraints."""
     penalty_value = 0.0
     if bounds is not None:
         for i, bound in enumerate(bounds):
@@ -100,6 +95,12 @@ def penalty(x, bounds=None, constraints=None):
                 penalty_value = np.inf
                 break
     return penalty_value
+
+
+def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
+    """Evaluate function and add a penalty (np.inf) if bounds or constraints are violated."""
+    penalty_value = penalty(x, bounds, constraints)
+    return func(x, *args, **kwargs) + penalty_value
 
 
 def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4):
@@ -239,29 +240,25 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     n = len(x0)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
-
     # Validate the initial point is in the problem space defined by bounds and constraints.
     if infinity_check(penalty(x0, bound, const)):
         raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
-
     # Initialize simplex.
     simplex = create_simplex(x0, initial_size)
     f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                     constraints=const)
-
-    # Check that the objective function evaluates to a finite value for all points in the simplex.  If the objective
-    # function evaluates to +/- np.inf, then this likely signals a bound or constraint violation.  One reason this
-    # could happen is that the simplex is too big to fit inside the bounded and constrained problem space.  A good
-    # check to see if bounds and constraints that define the problem space are reasonably 'well conditioned' is to run
-    # feasible_points_random and check that fraction_violated is in the range 0.05-1.00.  If fraction_violated is <0.05,
-    # then we know that the bounded and constrained problem space (the feasible problem space) is a tiny fraction of the
-    # bounded space which means we should reevaluate the problem spaced passed to nedler_mead. If fraction_violated is
-    # in the range 0.05-1.00, then we bisect the simplex size, generate a new simplex, and and re-evaluate the objective
-    # function at all points. If the bisection routine doesn't yield a valid simplex (where the objective function
-    # evaluates to finite values for all points) after 100 iterations, then the initial point could be very close to a
-    # bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value that is
-    # further away from the bounds and constraints that define the problem space.
-
+    # Check that the objective function evaluates to a finite value for all points in the simplex. If the objective
+    # function evaluates to +/- np.inf, then this signals a bound or constraint violation.  One reason this can
+    # happen is that the simplex is too big to fit inside the bounded and constrained problem space.  A good check
+    # to see if bounds and constraints that define the problem space are reasonably 'well conditioned' is to run
+    # feasible_points_random and check that fraction_violated is in the range 0.05-1.00 (or so).  If fraction_
+    # violated is <0.05, then we know that the bounded and constrained problem space (the feasible problem space) is
+    # a tiny fraction of the bounded space which means we should re-evaluate the problem space passed to nedler_mead.
+    # If fraction_violated is in the range 0.05-1.00, then we bisect the simplex size, generate a new simplex, and
+    # re-evaluate the objective function at all points. If the bisection routine doesn't yield a valid simplex (where
+    # the objective function is finite for all points) after 100 iterations, then the initial point could be very
+    # close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value
+    # that is further away from the bounds and constraints that define the problem space.
     counter = 0
     while infinity_check(f_simplex) == True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
@@ -271,22 +268,18 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         counter = counter + 1
     if counter >= max_bisect_iter:
         raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints.')
-
     ordered = np.argsort(f_simplex)
-
     # Calculate adaptive parameters improve convergence for higher dimensional problems
     n = len(simplex[0])
     r = 1.0  # reflection (standard method = 1)
     e = 1.0 + 2.0/n  # expansion (standard method = 2)
     c = 0.75 - 1.0/(2.0*n)  # contraction (standard method = 1/2)
     s = 1.0 - 1.0/n  # shrink (standard method = 1/2)
-
     # Initialize termination variables
     small = 1.0
     flat = 1.0
     counter = 0
-    
-    # Initialize algorithm performance tracking variables
+    # Initialize performance tracking variables
     reflection_count = 0
     expansion_count = 0    
     outside_contraction_count = 0
@@ -299,12 +292,10 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         # second_highest = simplex[ordered[-2], :]
         highest = simplex[ordered[-1], :]
         centroid = simplex[ordered[0:-1], :].mean(axis=0)
-
         # Objective function evaluated at each simplex point from above.
         f_highest = f_simplex[ordered[-1]]
         f_second_highest = f_simplex[ordered[-2]]
-        f_lowest = f_simplex[ordered[0]]    
-
+        f_lowest = f_simplex[ordered[0]]
         # Evaluate reflection.
         reflection = centroid + r*(centroid - highest)
         f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
@@ -372,7 +363,7 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
 
 
 def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
-                   max_iter=2000):
+                   max_iter=2000, neighborhood_size=5, swarm_size=50):
     """Minimize a scalar function using the Particle Swarm algorithm.
 
     Local-best algorithm with ring social network structure.  Implementation details can be found in...
@@ -399,7 +390,7 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     const = constraints_check(constraints)
 
     # Initialize swarm with random points that satisfy conditions laid out in bounds and constraints.
-    fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const)
+    fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const, point_count=swarm_size)
 
     # Initialize particle swarm algorithm constants.
     swarm_size = len(feasible_points)
@@ -407,7 +398,6 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     cognitive_parameter = 1.49
     social_parameter = 1.49
     velocity_weight = 0.73
-    neighborhood_size = 5
 
     # Initialize swarm position and velocity.
     current_position = feasible_points.copy()
@@ -418,6 +408,9 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     personal_best_value = np.full(shape=swarm_size, fill_value=np.inf)
     neighborhood_best_position = np.zeros(shape=(swarm_size, dimension))
     neighborhood_best_value = np.full(shape=swarm_size, fill_value=np.inf)
+
+    # The distance between the best two swarm points is a good estimate for initial_size in the Nelder-Mead algorithm.
+    nelder_mead_initial_size = 0.0
 
     # Begin particle swarm iterations.
     counter = 0
@@ -431,6 +424,7 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
         ordered = np.argsort(current_combined_value)
         flat = np.absolute(current_combined_value[ordered[0]] - current_combined_value[ordered[1]])
         small = np.linalg.norm(current_position[ordered[0]] - current_position[ordered[1]])
+        nelder_mead_initial_size = small
 
         # Evaluate if termination criteria are met and break while loop if so.
         if small < small_tol:
@@ -473,3 +467,170 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     final_ordered = np.argsort(personal_best_value)
 
     return personal_best_position[final_ordered[0]]
+
+
+NUM_CPUS = multiprocessing.cpu_count()
+NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
+
+
+def bootstrap_sample(array_size, sample_size):
+    """
+    Returns an array of integers which is a uniform random sample consisting of [sample_size] elements taken from an
+    array of indices where n = [array_size].  This array of multipliers can be used to generate bootstrap confidence
+    intervals.
+    """
+    indices = np.arange(array_size)
+    samples = np.random.choice(indices, size=sample_size, replace=True)
+    bootstrap_result = np.zeros(array_size, dtype=np.int32)
+    bootstrap_indices, bootstrap_count = np.unique(samples, return_counts=True)
+    bootstrap_result[bootstrap_indices] = bootstrap_count
+    return bootstrap_result
+
+
+def function_wrapper(argument):
+    """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
+
+    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument.   This
+    doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
+    args and kwargs and then call func_wrapper in the Pool method.
+
+    arguments = [(args, kwargs) for j in jobs_with_different_args_and_kwargs]
+
+    This wrapper supports the least_squares_objective_function and will return one evaluated element of the objective
+    function.  It also checks if either the weight or bootstrapping multipliers is zero before evaluating the func to
+    improve efficiency.
+
+    objective_function_element_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
+    """
+    func, theta, x, fx, w, b, args, kwargs, bound, const = argument
+    # New call signature --> penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
+    # Old call signature --> func(x, *theta, *args, **kwargs)
+    # Disagreement between structures requires us to combine theta and args into one tuple to pass.
+    args_list = theta.append(args)
+    args_tuple = tuple(args_list)
+    return (w * b) * (penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
+
+
+def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
+                                     constraints=None, multiprocess=False):
+    """Returns the scalar result of evaluation of the least squares objective function.
+
+    least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
+
+    The least squares objective function is the core of parameter fitting.  This implementation facilitates weights
+    as well as bootstrapping. The difference between fx and func(theta, xi, *args_i, **kwargs_i) is a measure  of the
+    goodness of fit of func to the data.
+
+    In this implementation, the objective function is broken down into pieces to improve the code structure as well
+    as to facilitate parallel processing.  The following structure allows us to evaluate each result_i in an
+    embarrassingly parallel fashion if the objection function is very expensive to evaluate.
+
+    least_squares_objective_function = sum_over_i{result_i}
+    result_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
+
+    The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
+    performance improvement. The Python multiprocessing library often results in slower performance because of the
+    system overhead required to manage multiple processes.
+
+    Args:
+        theta (list): Vector representing the initial starting point for optimization algorithm.
+        x (list): List of tuples or list of lists representing input values of a data set for func.
+        fx (list): List of scalars representing output values of a data set for func.
+        w (list, optional): List of scalars representing the weight.
+        b (list, optional): List of integers representing the bootstrap multiplier.
+        func (callable): Scalar function to be minimized, ``func(x, *theta, *args, **kwargs)``.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func.
+        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
+        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        multiprocess (bool, optional): Boolean indicator that enables parallel processing.
+
+    Returns:
+        (scalar): objective_function_value
+    """
+    x_array = np.array(x)
+    fx_array = np.array(fx)
+    if w is None:
+        w_array = np.ones(len(x))
+    else:
+        w_array = np.array(w)
+
+    if b is None:
+        b_array = np.ones(len(x))
+    else:
+        b_array = np.array(b)
+    func_list = [func] * len(x)
+    theta_list = [theta] * len(x)
+    if args is None:
+        args_list = [()] * len(x)
+    elif isinstance(args, (list, tuple)):
+        args_list = args
+    else:
+        raise TypeError("args must be a list or tuple of length len(x) containing args lists or args tuples")
+    if kwargs is None:
+        kwargs_list = [{}] * len(x)
+    elif isinstance(kwargs, (list, tuple)):
+        kwargs_list = kwargs
+    else:
+        raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
+    n = len(bounds)
+    bound = bounds_check(n, bounds)
+    const = constraints_check(constraints)
+    bound_list = [bound] * len(x)
+    const_list = [const] * len(x)
+    arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list,
+                                  bound_list, const_list)))
+    if multiprocess:
+        with multiprocessing.Pool(NUM_PROCESSES) as p:
+            results = p.map(function_wrapper, arguments)
+    else:
+        results = np.apply_along_axis(function_wrapper, 1, arguments)
+    return np.sum(results)
+
+
+def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
+                            multiprocess=False, samples=500, small_tol=10.0**-15, flat_tol=10.0**-15, max_iter=10000,
+                            max_bisect_iter=100, initial_size=0.01):
+    """Returns list of tuples containing the results (thetas) of repeated least squares fitting of func to x and fx.
+
+    Repeated evaluation of the 'least_squares_objective_function' where the 'bootstrap' multiplier is used to drive
+    random sampling from 'x', 'fx', and 'weight' with replacement.  THe bootstrap multiplier ('bi') is implemented in
+    a separate function and returns a list of scalar multipliers that allow random sampling with replacement. This
+    resulting list of tuples can be used to estimate the distribution of each element of theta.
+
+    least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
+
+    Args:
+        theta (list): Vector representing the initial starting point for optimization algorithm.
+        func (callable): Scalar function to be minimized, ``func(x, *theta, *args, **kwargs)``.
+        x (list): List of tuples or list of lists representing input values of a data set for func.
+        fx (list): List of scalars representing output values of a data set for func.
+        weight (list, optional): List of scalars representing the weight.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func.
+        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
+        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        samples (int, optional): Specification for the number of bootstrap samples to be run.
+        multiprocess (bool, optional): Boolean indicator that enables parallel processing.
+        small_tol (scalar, optional): Nelder-Mead algorithm termination criteria.
+        flat_tol (scalar, optional): Nelder-Mead algorithm termination criteria.
+        max_iter (int, optional): Nelder-Mead algorithm termination criteria.
+        max_bisect_iter (int, optional): Termination criteria for simplex generation loop in Nelder-Mead algorithm.
+        initial_size (scalar, optional): Initial simplex size in Nelder-Mead algorithm.
+
+    Returns:
+        (list of tuples): Vector containing the results of repeated least squares fitting of func to x and fx.
+    """
+    result = []
+    for i in range(samples):
+        bootstrap = bootstrap_sample(len(x), len(x))
+        result.append(nelder_mead(theta, least_squares_objective_function,
+                                  args=(func, x, fx, weight, bootstrap, args, kwargs, bounds,
+                                        constraints, multiprocess),
+                                  # consider breakout of kwargs={w,b,args,kwargs,bounds,constraints, multiprocess}
+                                  small_tol=small_tol,
+                                  flat_tol=flat_tol,
+                                  max_iter=max_iter,
+                                  max_bisect_iter=max_bisect_iter,
+                                  initial_size=initial_size))
+    return result
