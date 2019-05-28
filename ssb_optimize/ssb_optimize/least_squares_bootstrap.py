@@ -8,6 +8,7 @@ import multiprocessing
 NUM_CPUS = multiprocessing.cpu_count()
 NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
 
+
 def bootstrap_sample(array_size, sample_size):
     """
     Returns an array of integers which is a uniform random sample consisting of [sample_size] elements taken from an
@@ -20,6 +21,7 @@ def bootstrap_sample(array_size, sample_size):
     bootstrap_indeces, bootstrap_count = np.unique(samples, return_counts=True)
     bootstrap_result[bootstrap_indeces] = bootstrap_count
     return bootstrap_result
+
 
 def function_wrapper(argument):
     '''

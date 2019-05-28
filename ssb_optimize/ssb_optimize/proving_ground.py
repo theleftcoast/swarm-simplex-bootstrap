@@ -30,7 +30,6 @@ fraction_violated, feasbile_points = opt.feasible_points_random(bounds=bound, co
 x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
-print(opt.penalized_func(x_0,func,bounds=bound,constraints=const))
 
 x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
 x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
@@ -58,7 +57,6 @@ fraction_violated, feasbile_points = opt.feasible_points_random(bounds=bound, co
 x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
-print(opt.penalized_func(x_0,func,bounds=bound,constraints=const))
 
 x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
 x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
@@ -83,7 +81,6 @@ fraction_violated, feasbile_points = opt.feasible_points_random(bounds=bound, co
 x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
-print(opt.penalized_func(x_0,func,bounds=bound,constraints=const))
 
 x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
 x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
@@ -108,7 +105,6 @@ fraction_violated, feasbile_points = opt.feasible_points_random(bounds=bound, co
 x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
-print(opt.penalized_func(x_0,func,bounds=bound,constraints=const))
 
 x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
 x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)

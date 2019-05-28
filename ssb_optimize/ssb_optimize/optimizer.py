@@ -5,7 +5,31 @@ import multiprocessing
 
 
 def bounds_check(n, bounds=None):
-    """Check bounds list of size 'n' for consistency and return the list with basic problems corrected."""
+    """Check bounds list of size 'n' for consistency and return the list with basic problems corrected.
+
+    A valid bounds list is a list of bound tuples. --> [(bound_tuple), ... ,(bound_tuple)]
+
+    A bound tuple specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
+    space. If there are no boundaries for a particular dimension of the problem space (i.e. infinity or -infinity),
+    then pass 'None' for that element of the bound tuple.
+
+    bound_tuple --> (min, max), (None, max), (min, None), (None, None)
+
+    Args:
+        n (int): Size of bounds list.
+        bounds (list): List of bounds tuples.
+
+    Returns:
+        list: Validated list of bounds tuples.
+
+    Raises:
+        TypeError: n must be an integer
+        ValueError: length of bounds list must equal dimension n passed to bounds_check
+        TypeError: bound must be a (min, max) tuple
+        TypeError: bounds min value must be a number
+        TypeError: bounds max value must be a number
+        ValueError: bounds min must be less than max
+    """
     # Check validity of 'n'.
     if not isinstance(n, int):
         raise TypeError('n must be an integer')
@@ -13,7 +37,7 @@ def bounds_check(n, bounds=None):
     if bounds is None:
         bounds = [(None, None)]*n
     if len(bounds) != n:
-        raise ValueError('length of bounds list must equal dimension n passed to func')
+        raise ValueError('length of bounds list must equal dimension n passed to bounds_check')
     lower = np.zeros(n)
     upper = np.zeros(n)
     for i, bound in enumerate(bounds):
@@ -45,33 +69,64 @@ def bounds_check(n, bounds=None):
 
 
 def constraints_check(constraints=None):
-    """Check constraints dictionary for consistency and return the dictionary with basic issues corrected."""
+    """Check constraints list for consistency and return the list with basic problems corrected.
+
+    A valid constraints list is a list of constraint dictionaries. --> [{const_dict}, ... ,{const_dict}]
+
+    A constraint dictionary specifies individual constraint function, arguments (args and kwargs), and a constraint
+    type.  The value corresponding the 'func' key is a callable function which defines the constraint.  Traditional
+    functions ('def func(x): ...') and lambda functions ('func = lambda x: ...') both work.  The function signature
+    must be of the form 'func(x, *args, **kwargs)' where 'x' is a scalar or a list of scalars representing a vector.
+    The return value from 'func' must be a scalar.  Values corresponding to the 'args' and 'kwargs' keys are any
+    additional arguments to be passed to 'func' (both are optional).  Positional arguments (args) are specified as
+    a tuple and keyword arguments (kwargs) are specified as a dictionary. The value corresponding to the 'type' key
+    specifies the inequality that the scalar returned from 'func' must obey for the constraint to be satisfied.
+    Values for the inequality specification may be '>0', '>=0', '<0', '<=0'.
+
+    const_dict --> {'type': ineq_spec_string, 'func': callable_func, 'args': (args_tuple), 'kwargs': {kwargs_dict}}
+
+    Args:
+        constraints (list): List of constraint dictionaries.
+
+    Returns:
+        list: Validated list of constraint dictionaries.
+
+    Raises:
+        TypeError: constraints must be a list of dictionaries
+        TypeError: constraint is not a dictionary
+        TypeError: constraint dictionary does not have required "type" key
+        ValueError: constraint["type"] must be >0, >=0, <0, or <=0
+        TypeError: constraint dictionary does not have required "func" key
+        ValueError: constraint["func"] must be callable
+        TypeError: constraint["args"] must be a tuple
+        TypeError: constraint["kwargs"] must be a dictionary
+    """
     if constraints is not None:
         if not isinstance(constraints, list):
             raise TypeError('constraints must be a list of dictionaries')
         for i, const in enumerate(constraints):
             if not isinstance(const, dict):
-                raise TypeError('constraints[%d] is not a dictionary' % i)
+                raise TypeError('constraint[%d] is not a dictionary' % i)
             if 'type' not in const.keys():
-                raise TypeError('constraints[%d] dictionary does not have required "type" key' % i)
+                raise TypeError('constraint[%d] dictionary does not have required "type" key' % i)
             if const['type'] not in ['>0', '>=0', '<0', '<=0']:
-                raise ValueError('constraints[%d]["type"] must be >0, >=0, <0, or <=0' % i)
+                raise ValueError('constraint[%d]["type"] must be >0, >=0, <0, or <=0' % i)
             if 'func' not in const.keys():
-                raise TypeError('constraints[%d] dictionary does not have required "func" key' % i)
+                raise TypeError('constraint[%d] dictionary does not have required "func" key' % i)
             if not callable(const['func']):
-                raise TypeError('constraints[%d]["func"] must be callable' % i)
+                raise TypeError('constraint[%d]["func"] must be callable' % i)
             if 'args' not in const.keys():
                 const['args'] = ()
             if not isinstance(const['args'], tuple):
-                raise TypeError('constraints[%d]["args"] must be a tuple' % i)
+                raise TypeError('constraint[%d]["args"] must be a tuple' % i)
             if 'kwargs' not in const.keys():
                 const['kwargs'] = {}
             if not isinstance(const['kwargs'], dict):
-                raise TypeError('constraints[%d]["kwargs"] must be a dictionary' % i)
+                raise TypeError('constraint[%d]["kwargs"] must be a dictionary' % i)
     return constraints
 
 
-def penalty(x, bounds=None, constraints=None):
+def _penalty(x, bounds=None, constraints=None):
     """Return a penalty value (which is np.inf) if the input vector x violates either the bounds or constraints."""
     penalty_value = 0.0
     if bounds is not None:
@@ -97,13 +152,13 @@ def penalty(x, bounds=None, constraints=None):
     return penalty_value
 
 
-def penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
+def _penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
     """Evaluate function and add a penalty (np.inf) if bounds or constraints are violated."""
-    penalty_value = penalty(x, bounds, constraints)
+    penalty_value = _penalty(x, bounds, constraints)
     return func(x, *args, **kwargs) + penalty_value
 
 
-def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4):
+def _feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0 ** 4):
     """Generate list of feasible points from a grid which satisfy the bounds and constraints."""
     # Check validity of inputs.
     if not isinstance(grid_size, int):
@@ -129,7 +184,7 @@ def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4
     # Create list of points from the cartesian product of all bound arrays covering entire bounded space.
     list_of_points = np.array(list(itertools.product(*bound_arrays)))
     # Evaluate penalty function at each point in list_of_points.
-    penalty_function_values = np.apply_along_axis(penalty, axis=1, arr=list_of_points, bounds=bounds,
+    penalty_function_values = np.apply_along_axis(_penalty, axis=1, arr=list_of_points, bounds=bounds,
                                                   constraints=constraints)
     # Create summary statistics and list of points where all constraints are satisfied.
     number_of_points = len(list_of_points)
@@ -140,9 +195,9 @@ def feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0**4
     return fraction_violated, np.array(feasible_points)
 
 
-def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0**4):
+def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0 ** 4):
     """Generate list of feasible points using random sampling which satisfy the bounds and constraints."""
-    # Check validity of inputs.
+    # Validate input variables
     if not isinstance(point_count, int):
         raise TypeError('point_count must be an integer')
     if max_iter is None:
@@ -171,7 +226,7 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
     # Generate random values within the limits defined by bounds and evaluate if each point satisfies constraints.
     while len(feasible_points) < point_count and len(feasible_points) + len(infeasible_points) < max_iter:
         random_vector = [np.random.uniform(bound[0], bound[1]) for bound in finite_bounds]
-        penalty_function_value = penalty(random_vector, bounds=bounds, constraints=constraints)
+        penalty_function_value = _penalty(random_vector, bounds=bounds, constraints=constraints)
         if penalty_function_value == 0.0:
             feasible_points.append(random_vector)
         else:
@@ -189,7 +244,7 @@ def best_point(points, func, args=(), kwargs={}):
     return points[ordered[0], :]
 
 
-def create_simplex(initial, size):
+def _create_simplex(initial, size):
     """Create initial simplex for the nelder_mead function."""
     n = len(initial)
     p = (size/(n*2**0.5))*(n - 1 + (n + 1)**0.5)
@@ -205,13 +260,13 @@ def create_simplex(initial, size):
     return np.row_stack((initial, result))
 
 
-def infinity_check(x):
+def _infinity_check(x):
     """ Check for +/- np.inf elements. """
     element_check = np.isinf(x)
     return np.any(element_check)
 
 
-def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-15,
+def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-13,
                 max_iter=10000, max_bisect_iter=100, initial_size=0.01):
     """Minimize a scalar function using the Nelder-Mead simplex algorithm.
 
@@ -236,16 +291,35 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     Returns:
         (np.array): Vector representing the local minimum of func.
     """
-    # Validate bounds list and constraints dictionary
+    # Validate bounds list and constraints dictionary are formatted correctly
     n = len(x0)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
+    # Validate input variable types
+    if not isinstance(x0, (list, np.ndarray)):
+        raise TypeError('x0 must be a list of scalars or a numpy array')
+    if not callable(func):
+        raise TypeError('func must be callable')
+    if not isinstance(max_iter, int):
+        raise TypeError('max_iter must be an integer')
+    if not isinstance(max_bisect_iter, int):
+        raise TypeError('max_bisect_iter must be an integer')
+    if not isinstance(small_tol, numbers.Number):
+        raise TypeError('small_tol must be a number')
+    if not isinstance(flat_tol, numbers.Number):
+        raise TypeError('flat_tol must be a number')
+    if not isinstance(initial_size, numbers.Number):
+        raise TypeError('initial_size must be a number')
+    if not isinstance(args, tuple):
+        raise TypeError('args must be a tuple')
+    if not isinstance(kwargs, dict):
+        raise TypeError('kwargs must be a dict')
     # Validate the initial point is in the problem space defined by bounds and constraints.
-    if infinity_check(penalty(x0, bound, const)):
+    if _infinity_check(_penalty(x0, bound, const)):
         raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
     # Initialize simplex.
-    simplex = create_simplex(x0, initial_size)
-    f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
+    simplex = _create_simplex(x0, initial_size)
+    f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                     constraints=const)
     # Check that the objective function evaluates to a finite value for all points in the simplex. If the objective
     # function evaluates to +/- np.inf, then this signals a bound or constraint violation.  One reason this can
@@ -260,10 +334,10 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     # close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value
     # that is further away from the bounds and constraints that define the problem space.
     counter = 0
-    while infinity_check(f_simplex) == True and counter <= max_bisect_iter:
+    while _infinity_check(f_simplex) == True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
-        simplex = create_simplex(x0, initial_size)
-        f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
+        simplex = _create_simplex(x0, initial_size)
+        f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                         constraints=const)
         counter = counter + 1
     if counter >= max_bisect_iter:
@@ -298,12 +372,12 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         f_lowest = f_simplex[ordered[0]]
         # Evaluate reflection.
         reflection = centroid + r*(centroid - highest)
-        f_reflection = penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+        f_reflection = _penalized_func(reflection, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
         # Compare reflection, expansion, contraction, and shrink operations.
         if f_reflection < f_lowest:
             # Evaluate expansion.
             expansion = centroid + e*(reflection - centroid)
-            f_expansion = penalized_func(expansion, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
+            f_expansion = _penalized_func(expansion, func, args=args, kwargs=kwargs, bounds=bound, constraints=const)
             if f_expansion < f_reflection:
                 # Replace highest by expansion
                 simplex[ordered[-1], :] = expansion
@@ -322,8 +396,8 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         elif f_reflection < f_highest:
             # Evaluate outside contraction.
             outside_contraction = centroid + c*(reflection - centroid)
-            f_outside_contraction = penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
-                                                   constraints=const)
+            f_outside_contraction = _penalized_func(outside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
+                                                    constraints=const)
             if f_outside_contraction < f_reflection:
                 # Replace highest by reflection
                 simplex[ordered[-1], :] = outside_contraction
@@ -333,14 +407,14 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i, :] = lowest + s*(simplex[i, :] - lowest)
-                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
+                f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
                                                 bounds=bound, constraints=const)
                 shrink_count += 1
         else:
             # Evaluate inside contraction.
             inside_contraction = centroid - c*(reflection - centroid)
-            f_inside_contraction = penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
-                                                  constraints=const)
+            f_inside_contraction = _penalized_func(inside_contraction, func, args=args, kwargs=kwargs, bounds=bound,
+                                                   constraints=const)
             if f_inside_contraction < f_highest:
                 # Replace highest by contraction
                 simplex[ordered[-1], :] = inside_contraction
@@ -350,19 +424,19 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
                 # Replace all but best by shrink
                 for i in ordered:
                     simplex[i, :] = lowest + s*(simplex[i, :] - lowest)
-                f_simplex = np.apply_along_axis(penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
+                f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs,
                                                 bounds=bound, constraints=const)
                 shrink_count += 1
         # Evaluate termination criteria.
         ordered = np.argsort(f_simplex)
-        if infinity_check(f_simplex) == False:
+        if _infinity_check(f_simplex) == False:
             flat = np.absolute(f_simplex[ordered[-1]] - f_simplex[ordered[0]])
             small = np.linalg.norm(simplex[ordered[-1]] - simplex[ordered[0]])
         counter = counter + 1
     return simplex[ordered[0]]
 
 
-def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-9, flat_tol=10.0**-9,
+def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-11, flat_tol=10.0**-9,
                    max_iter=2000, neighborhood_size=5, swarm_size=50):
     """Minimize a scalar function using the Particle Swarm algorithm.
 
@@ -373,24 +447,49 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
 
     Args:
         func (callable): Scalar function to be minimized.
-        args (tuple, optional): Additional positional arguments required by func (if any).
+        args (tuple, optional): Additional positional arguments required by func.
         kwargs (dict, optional): Additional keyword arguments required by func.
         bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
         constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
         small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
+        neighborhood_size (int, optional): Neighborhood size for local-best algorithm.
+        swarm_size (int, optional): Number of particles in the swarm.
 
     Returns:
         (np.array): Vector representing the local minimum of func.
     """
-    # Validate bounds list and constraints dictionary
+    # Validate bounds list and constraints dictionary are formatted correctly
     n = len(bounds)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
 
+    # Validate input variable types
+    if not callable(func):
+        raise TypeError('func must be callable')
+    if not isinstance(max_iter, int):
+        raise TypeError('max_iter must be an integer')
+    if not isinstance(neighborhood_size, int):
+        raise TypeError('neighborhood_size must be an integer')
+    if not isinstance(swarm_size, int):
+        raise TypeError('swarm_size must be an integer')
+    if not isinstance(small_tol, numbers.Number):
+        raise TypeError('small_tol must be a number')
+    if not isinstance(flat_tol, numbers.Number):
+        raise TypeError('flat_tol must be a number')
+    if not isinstance(args, tuple):
+        raise TypeError('args must be a tuple')
+    if not isinstance(kwargs, dict):
+        raise TypeError('kwargs must be a dict')
+
+    # Validate neighborhood size relative to swarm size
+    if neighborhood_size > swarm_size:
+        raise ValueError("neighborhood_size must be less than or equal to swarm_size")
+
     # Initialize swarm with random points that satisfy conditions laid out in bounds and constraints.
-    fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const, point_count=swarm_size)
+    fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const,
+                                                                point_count=swarm_size)
 
     # Initialize particle swarm algorithm constants.
     swarm_size = len(feasible_points)
@@ -409,7 +508,7 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     neighborhood_best_position = np.zeros(shape=(swarm_size, dimension))
     neighborhood_best_value = np.full(shape=swarm_size, fill_value=np.inf)
 
-    # The distance between the best two swarm points is a good estimate for initial_size in the Nelder-Mead algorithm.
+    # The distance between the best two swarm points is a great estimate for initial_size in the Nelder-Mead algorithm.
     nelder_mead_initial_size = 0.0
 
     # Begin particle swarm iterations.
@@ -417,7 +516,7 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
     while counter < max_iter:
 
         # Calculate function values at current swarm position.
-        current_combined_value = np.apply_along_axis(penalized_func, 1, current_position, func,
+        current_combined_value = np.apply_along_axis(_penalized_func, 1, current_position, func,
                                                      args=args, kwargs=kwargs, bounds=bound, constraints=const)
 
         # Evaluate termination variables.
@@ -473,7 +572,7 @@ NUM_CPUS = multiprocessing.cpu_count()
 NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
 
 
-def bootstrap_sample(array_size, sample_size):
+def _bootstrap_sample(array_size, sample_size):
     """
     Returns an array of integers which is a uniform random sample consisting of [sample_size] elements taken from an
     array of indices where n = [array_size].  This array of multipliers can be used to generate bootstrap confidence
@@ -487,7 +586,7 @@ def bootstrap_sample(array_size, sample_size):
     return bootstrap_result
 
 
-def function_wrapper(argument):
+def _function_wrapper(argument):
     """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
 
     This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument.   This
@@ -508,7 +607,7 @@ def function_wrapper(argument):
     # Disagreement between structures requires us to combine theta and args into one tuple to pass.
     args_list = theta.append(args)
     args_tuple = tuple(args_list)
-    return (w * b) * (penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
+    return (w * b) * (_penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
@@ -582,14 +681,14 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
                                   bound_list, const_list)))
     if multiprocess:
         with multiprocessing.Pool(NUM_PROCESSES) as p:
-            results = p.map(function_wrapper, arguments)
+            results = p.map(_function_wrapper, arguments)
     else:
-        results = np.apply_along_axis(function_wrapper, 1, arguments)
+        results = np.apply_along_axis(_function_wrapper, 1, arguments)
     return np.sum(results)
 
 
 def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
-                            multiprocess=False, samples=500, small_tol=10.0**-15, flat_tol=10.0**-15, max_iter=10000,
+                            multiprocess=False, samples=500, small_tol=10.0**-15, flat_tol=10.0**-13, max_iter=10000,
                             max_bisect_iter=100, initial_size=0.01):
     """Returns list of tuples containing the results (thetas) of repeated least squares fitting of func to x and fx.
 
@@ -623,11 +722,10 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
     """
     result = []
     for i in range(samples):
-        bootstrap = bootstrap_sample(len(x), len(x))
+        bootstrap = _bootstrap_sample(len(x), len(x))
         result.append(nelder_mead(theta, least_squares_objective_function,
                                   args=(func, x, fx, weight, bootstrap, args, kwargs, bounds,
                                         constraints, multiprocess),
-                                  # consider breakout of kwargs={w,b,args,kwargs,bounds,constraints, multiprocess}
                                   small_tol=small_tol,
                                   flat_tol=flat_tol,
                                   max_iter=max_iter,
