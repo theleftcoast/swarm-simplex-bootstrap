@@ -5,6 +5,6 @@ Project structure is aligned with [python-guide.org](https://docs.python-guide.o
 
 To run unit tests, open a shell environment and run the following command in the top-level directory.
 
-'''bash
+```console
 python -m unittest discover -v
-'''
+```
