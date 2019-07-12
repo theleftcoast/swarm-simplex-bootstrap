@@ -11,7 +11,7 @@ def bounds_check(n, bounds=None):
 
     A bound tuple specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
     space. If there are no boundaries for a particular dimension of the problem space (i.e. infinity or -infinity),
-    then pass 'None' for that element of the bound tuple.
+    then specify 'None' for that element of the bound tuple.
 
     bound_tuple --> (min, max), (None, max), (min, None), (None, None)
 
@@ -152,14 +152,16 @@ def _penalty(x, bounds=None, constraints=None):
     return penalty_value
 
 
-def _penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None):
-    """Evaluate function and add a penalty (np.inf) if bounds or constraints are violated."""
+def _penalized_func(x, func, args=None, kwargs=None, bounds=None, constraints=None):
+    """Evaluate function and add a penalty (which is np.inf) if bounds or constraints are violated."""
+    args = args or ()
+    kwargs = kwargs or {}
     penalty_value = _penalty(x, bounds, constraints)
     return func(x, *args, **kwargs) + penalty_value
 
 
 def _feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0 ** 4):
-    """Generate list of feasible points from a grid which satisfy the bounds and constraints."""
+    """Generate list of feasible points starting from a grid which satisfy the bounds and constraints."""
     # Check validity of inputs.
     if not isinstance(grid_size, int):
         raise TypeError('grid_size must be an integer')
@@ -195,13 +197,37 @@ def _feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0 *
     return fraction_violated, np.array(feasible_points)
 
 
-def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0 ** 4):
-    """Generate list of feasible points using random sampling which satisfy the bounds and constraints."""
+def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0**4):
+    """Generate an array of feasible points using random sampling which satisfy the bounds and constraints.
+
+    The variables point_count, max_iter, and inf_repl specify how the point generation procedure functions.  The
+    procedure randomly generates a point, evaluates the point against both the bounds and constraints, and stores that
+    point if it satisfies both the bounds and constraints.  The loop continues until the point_count is satisfied or
+    until max_iter has been reached.  If the loop terminates due to reaching the max_iter criteria, that is an
+    indication that the feasible space (the region where both bounds and constraints are both satisfied) is a small
+    region inside of the bounded space.  To overcome this problem, you can increase max_iter from it's default value
+    (which is point_count*100) to a much larger value.  If any of the bound tuples contains +/- np.inf, this means that
+    there is no boundary for that particular dimension of the problem space.  The procedure replaces 'None' with the
+    value specified in inf_repl to create a bounded region for the point generation procedure to work inside.
+
+    Args:
+        bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
+        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
+        point_count(int): Number of random points to be generated.
+        max_iter (int): Termination criteria based on maximum number of iterations.
+        inf_repl (scalar): Value used to replace +/- np.inf in any of the bound tuples specified in bounds.
+
+    Returns:
+        np.array: Array of points that satisfy the bounds and constraints.
+
+    Raises:
+        RuntimeWarning: len(feasible_points) is less than the specified point_count
+    """
     # Validate input variables
     if not isinstance(point_count, int):
         raise TypeError('point_count must be an integer')
     if max_iter is None:
-        max_iter = point_count*100
+        max_iter = point_count*1000
     if not isinstance(max_iter, int):
         raise TypeError('max_iter must be an integer')
     if not isinstance(inf_repl, numbers.Number):
@@ -231,14 +257,30 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
             feasible_points.append(random_vector)
         else:
             infeasible_points.append(random_vector)
+    # Check that the loop did not exit due to the max_iter criteria.
+    if len(feasible_points) < point_count:
+        raise RuntimeWarning('len(feasible_points) is less than the specified point_count')
     # Create summary statistics.
     number_of_points = len(feasible_points) + len(infeasible_points)
     fraction_violated = len(infeasible_points)/number_of_points
     return fraction_violated, np.array(feasible_points)
 
 
-def best_point(points, func, args=(), kwargs={}):
-    """Return the point corresponding to the lowest evaluated value of func."""
+def best_point(points, func, args=None, kwargs=None):
+    """Return the point corresponding to the lowest evaluated value of func.
+
+    Args:
+        points (np.array): Array of feasible points (i.e. np.array returned by feasible_points_random).
+        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> scalar.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func (if any).
+
+    Returns:
+        np.array: Point corresponding to the lowest evaluated value of func.
+
+    """
+    args = args or ()
+    kwargs = kwargs or {}
     func_values = np.apply_along_axis(func, 1, points, *args, **kwargs)
     ordered = np.argsort(func_values)
     return points[ordered[0], :]
@@ -266,8 +308,8 @@ def _infinity_check(x):
     return np.any(element_check)
 
 
-def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-15, flat_tol=10.0**-13,
-                max_iter=10000, max_bisect_iter=100, initial_size=0.01):
+def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-15,
+                flat_tol=10.0**-13, max_iter=10000, max_bisect_iter=100, initial_size=0.01):
     """Minimize a scalar function using the Nelder-Mead simplex algorithm.
 
     Implementation details can be found in...
@@ -277,11 +319,11 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
 
     Args:
         x0 (list): Vector representing the initial starting point for optimization algorithm.
-        func (callable): Scalar function to be minimized.
+        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> scalar.
         args (tuple, optional): Additional positional arguments required by func (if any).
-        kwargs (dict, optional): Additional keyword arguments required by func.
-        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
-        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        kwargs (dict, optional): Additional keyword arguments required by func (if any).
+        bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
+        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
@@ -290,12 +332,27 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
 
     Returns:
         (np.array): Vector representing the local minimum of func.
+
+    Raises:
+        TypeError: x0 must be a list of scalars or a numpy array
+        TypeError: func must be callable
+        TypeError: max_iter must be an integer
+        TypeError: max_bisect_iter must be an integer
+        TypeError: small_tol must be a number
+        TypeError: flat_tol must be a number
+        TypeError: initial_size must be a number
+        TypeError: args must be a tuple
+        TypeError: kwargs must be a dictionary
+        ValueError: x0 must be inside the problem space defined by the bounds and constraints
+        ValueError: x0 is too close to the edge of the problem space defined by the bounds and constraints
     """
     # Validate bounds list and constraints dictionary are formatted correctly
     n = len(x0)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
     # Validate input variable types
+    args = args or ()
+    kwargs = kwargs or {}
     if not isinstance(x0, (list, np.ndarray)):
         raise TypeError('x0 must be a list of scalars or a numpy array')
     if not callable(func):
@@ -316,7 +373,7 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
         raise TypeError('kwargs must be a dict')
     # Validate the initial point is in the problem space defined by bounds and constraints.
     if _infinity_check(_penalty(x0, bound, const)):
-        raise ValueError('x0 must be inside the problem space defined by the bounds and constraints.')
+        raise ValueError('x0 must be inside the problem space defined by the bounds and constraints')
     # Initialize simplex.
     simplex = _create_simplex(x0, initial_size)
     f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
@@ -334,14 +391,14 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
     # close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value
     # that is further away from the bounds and constraints that define the problem space.
     counter = 0
-    while _infinity_check(f_simplex) == True and counter <= max_bisect_iter:
+    while _infinity_check(f_simplex) is True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
         simplex = _create_simplex(x0, initial_size)
         f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                         constraints=const)
         counter = counter + 1
     if counter >= max_bisect_iter:
-        raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints.')
+        raise ValueError('x0 is too close to the edge of the problem space defined by the bounds and constraints')
     ordered = np.argsort(f_simplex)
     # Calculate adaptive parameters improve convergence for higher dimensional problems
     n = len(simplex[0])
@@ -429,14 +486,14 @@ def nelder_mead(x0, func, args=(), kwargs={}, bounds=None, constraints=None, sma
                 shrink_count += 1
         # Evaluate termination criteria.
         ordered = np.argsort(f_simplex)
-        if _infinity_check(f_simplex) == False:
+        if _infinity_check(f_simplex) is False:
             flat = np.absolute(f_simplex[ordered[-1]] - f_simplex[ordered[0]])
             small = np.linalg.norm(simplex[ordered[-1]] - simplex[ordered[0]])
         counter = counter + 1
     return simplex[ordered[0]]
 
 
-def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, small_tol=10.0**-11, flat_tol=10.0**-9,
+def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-11, flat_tol=10.0**-9,
                    max_iter=2000, neighborhood_size=5, swarm_size=50):
     """Minimize a scalar function using the Particle Swarm algorithm.
 
@@ -446,11 +503,11 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
         https://doi.org/10.1002/9780470512517.ch16
 
     Args:
-        func (callable): Scalar function to be minimized.
-        args (tuple, optional): Additional positional arguments required by func.
-        kwargs (dict, optional): Additional keyword arguments required by func.
-        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
-        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> scalar.
+        args (tuple, optional): Additional positional arguments required by func (if any).
+        kwargs (dict, optional): Additional keyword arguments required by func (if any).
+        bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
+        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
@@ -458,14 +515,28 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
         swarm_size (int, optional): Number of particles in the swarm.
 
     Returns:
-        (np.array): Vector representing the local minimum of func.
+        np.array: Vector representing the local minimum of func.
+
+    Raises:
+        TypeError: func must be callable
+        TypeError: max_iter must be an integer
+        TypeError: neighborhood_size must be an integer
+        TypeError: swarm_size must be an integer
+        TypeError: small_tol must be a number
+        TypeError: flat_tol must be a number
+        TypeError: args must be a tuple
+        TypeError: kwargs must be a dictionary
+        ValueError: neighborhood_size must be less than or equal to swarm_size
+
+    TODO: return nelder_mead_initial_size (need to look at how this impacts existing use cases and test cases).
     """
     # Validate bounds list and constraints dictionary are formatted correctly
     n = len(bounds)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
-
     # Validate input variable types
+    args = args or ()
+    kwargs = kwargs or {}
     if not callable(func):
         raise TypeError('func must be callable')
     if not isinstance(max_iter, int):
@@ -482,61 +553,49 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
         raise TypeError('args must be a tuple')
     if not isinstance(kwargs, dict):
         raise TypeError('kwargs must be a dict')
-
     # Validate neighborhood size relative to swarm size
     if neighborhood_size > swarm_size:
         raise ValueError("neighborhood_size must be less than or equal to swarm_size")
-
     # Initialize swarm with random points that satisfy conditions laid out in bounds and constraints.
     fraction_violated, feasible_points = feasible_points_random(bounds=bound, constraints=const,
                                                                 point_count=swarm_size)
-
     # Initialize particle swarm algorithm constants.
     swarm_size = len(feasible_points)
     dimension = len(feasible_points[0])
     cognitive_parameter = 1.49
     social_parameter = 1.49
     velocity_weight = 0.73
-
     # Initialize swarm position and velocity.
     current_position = feasible_points.copy()
     current_velocity = np.zeros(shape=(swarm_size, dimension))
-
     # Initialize personal best and neighborhood best variables.
     personal_best_position = np.zeros(shape=(swarm_size, dimension))
     personal_best_value = np.full(shape=swarm_size, fill_value=np.inf)
     neighborhood_best_position = np.zeros(shape=(swarm_size, dimension))
     neighborhood_best_value = np.full(shape=swarm_size, fill_value=np.inf)
-
     # The distance between the best two swarm points is a great estimate for initial_size in the Nelder-Mead algorithm.
     nelder_mead_initial_size = 0.0
-
     # Begin particle swarm iterations.
     counter = 0
     while counter < max_iter:
-
         # Calculate function values at current swarm position.
         current_combined_value = np.apply_along_axis(_penalized_func, 1, current_position, func,
                                                      args=args, kwargs=kwargs, bounds=bound, constraints=const)
-
         # Evaluate termination variables.
         ordered = np.argsort(current_combined_value)
         flat = np.absolute(current_combined_value[ordered[0]] - current_combined_value[ordered[1]])
         small = np.linalg.norm(current_position[ordered[0]] - current_position[ordered[1]])
         nelder_mead_initial_size = small
-
         # Evaluate if termination criteria are met and break while loop if so.
         if small < small_tol:
             break
         elif flat < flat_tol:
             break
-
         # Update personal best values and positions.
         personal_best_value_update = np.less(current_combined_value, personal_best_value)
         personal_best_position_update = np.tile(personal_best_value_update, (dimension, 1)).transpose()
         personal_best_value = np.where(personal_best_value_update, current_combined_value, personal_best_value)
         personal_best_position = np.where(personal_best_position_update, current_position, personal_best_position)
-
         # Update neighborhood best values and positions.
         for i in np.arange(swarm_size):
             positions = np.take(current_position, range(i, i + neighborhood_size), axis=0, mode='wrap')
@@ -544,27 +603,21 @@ def particle_swarm(func, args=(), kwargs={}, bounds=None, constraints=None, smal
             ordered = np.argsort(values)
             neighborhood_best_position[i] = positions[ordered[0]]
             neighborhood_best_value[i] = values[ordered[0]]
-
         # Generate random numbers for use in evaluating velocity components.
         cognitive_random = np.random.uniform(size=(swarm_size, dimension))
         social_random = np.random.uniform(size=(swarm_size, dimension))
-
         # Evaluate velocity components.
         cognitive_component = cognitive_parameter*cognitive_random*(personal_best_position - current_position)
         social_component = social_parameter*social_random*(neighborhood_best_position - current_position)
         momentum_component = velocity_weight*current_velocity
-
         # Evaluate velocity and use velocity to calculate new position.
         new_velocity = momentum_component + social_component + cognitive_component
         new_position = current_position + new_velocity
-
         # Update current position and iteration variable
         current_position = new_position.copy()
         current_velocity = new_velocity.copy()
         counter = counter + 1
-
     final_ordered = np.argsort(personal_best_value)
-
     return personal_best_position[final_ordered[0]]
 
 
@@ -589,9 +642,9 @@ def _bootstrap_sample(array_size, sample_size):
 def _function_wrapper(argument):
     """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
 
-    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument.   This
-    doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
-    args and kwargs and then call func_wrapper in the Pool method.
+    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument. Unfortunately,
+    this doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
+    args and kwargs and then call func_wrapper.
 
     arguments = [(args, kwargs) for j in jobs_with_different_args_and_kwargs]
 
@@ -607,7 +660,8 @@ def _function_wrapper(argument):
     # Disagreement between structures requires us to combine theta and args into one tuple to pass.
     args_list = theta.append(args)
     args_tuple = tuple(args_list)
-    return (w * b) * (_penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
+    penalized = _penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const)
+    return (w * b) * (penalized - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
@@ -620,8 +674,8 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
     as well as bootstrapping. The difference between fx and func(theta, xi, *args_i, **kwargs_i) is a measure  of the
     goodness of fit of func to the data.
 
-    In this implementation, the objective function is broken down into pieces to improve the code structure as well
-    as to facilitate parallel processing.  The following structure allows us to evaluate each result_i in an
+    In this implementation, the objective function is broken down into pieces to improve code structure as well
+    as to facilitate parallel processing.  The function structure allows us to evaluate each result_i in an
     embarrassingly parallel fashion if the objection function is very expensive to evaluate.
 
     least_squares_objective_function = sum_over_i{result_i}
@@ -632,20 +686,24 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
     system overhead required to manage multiple processes.
 
     Args:
-        theta (list): Vector representing the initial starting point for optimization algorithm.
-        x (list): List of tuples or list of lists representing input values of a data set for func.
-        fx (list): List of scalars representing output values of a data set for func.
-        w (list, optional): List of scalars representing the weight.
+        theta (list): Vector representing the starting point for optimization algorithm.
+        x (list): List of tuples or list of lists representing input values of a data set.
+        fx (list): List of scalars representing output values of a data set.
+        w (list, optional): List of scalars representing the weight (often '1.0/std_error_i').
         b (list, optional): List of integers representing the bootstrap multiplier.
-        func (callable): Scalar function to be minimized, ``func(x, *theta, *args, **kwargs)``.
-        args (tuple, optional): Additional positional arguments required by func (if any).
+        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> scalar.
+        args (tuple, optional): Additional positional arguments required by func.
         kwargs (dict, optional): Additional keyword arguments required by func.
-        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
-        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
+        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         multiprocess (bool, optional): Boolean indicator that enables parallel processing.
 
     Returns:
-        (scalar): objective_function_value
+        scalar: objective_function_value
+
+    Raises:
+        TypeError: args must be a list or tuple of length len(x) containing args lists or args tuples
+        TypeError: kwargs must be a list or tuple of length len(x) containing kwargs dictionaries
     """
     x_array = np.array(x)
     fx_array = np.array(fx)
@@ -653,7 +711,6 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         w_array = np.ones(len(x))
     else:
         w_array = np.array(w)
-
     if b is None:
         b_array = np.ones(len(x))
     else:
@@ -707,8 +764,8 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
         weight (list, optional): List of scalars representing the weight.
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func.
-        bounds (list, optional): List of tuples specifying (min,max) boundaries for each dimension in problem space.
-        constraints (dict, optional): Dictionary specifying inequality constraints for solution vector in problem space.
+        bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
+        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         samples (int, optional): Specification for the number of bootstrap samples to be run.
         multiprocess (bool, optional): Boolean indicator that enables parallel processing.
         small_tol (scalar, optional): Nelder-Mead algorithm termination criteria.
