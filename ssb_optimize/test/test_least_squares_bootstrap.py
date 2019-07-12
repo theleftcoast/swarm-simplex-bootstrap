@@ -74,7 +74,7 @@ class LSBTestCase(TestCase):
         """
         """
         minimum = opt.nelder_mead(self.theta, opt.least_squares_objective_function,
-                              args=(obj.quadratic, self.x, self.fx, self.weight, self.bootstrap))
+                              args=(self.func, self.x, self.fx, self.weight, self.bootstrap))
         self.assertArrayAlmostEqual(minimum, self.theta_min, places=self.precision)
 
 # class WeightsTest():

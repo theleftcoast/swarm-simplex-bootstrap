@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" line="664" mnemonic="3" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="d0caa5dd-6130-470a-a14c-3a07b65199c0" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,13 +16,25 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="306">
-              <caret line="323" column="73" lean-forward="true" selection-start-line="323" selection-start-column="73" selection-end-line="323" selection-end-column="73" />
+            <state relative-caret-position="2145">
+              <caret line="749" column="42" selection-start-line="749" selection-start-column="42" selection-end-line="749" selection-end-column="42" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="289">
+              <caret line="35" column="10" selection-start-line="35" selection-start-column="10" selection-end-line="35" selection-end-column="10" />
+              <folding>
+                <element signature="e#0#33#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -28,7 +43,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/proving_ground.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="442">
+            <state relative-caret-position="153">
               <caret line="28" column="95" selection-start-line="28" selection-start-column="95" selection-end-line="28" selection-end-column="95" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
@@ -71,6 +86,8 @@
       <find>penalized</find>
       <find>lam</find>
       <find>kwargs=Non</find>
+      <find>args_list</find>
+      <find>[()]</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -100,11 +117,13 @@
         <option value="$PROJECT_DIR$/ssb_optimize/objective_functions.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/context.py" />
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_6.py" />
-        <option value="$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/constraint_functions.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_bootstrap.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/proving_ground.py" />
+        <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_8.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" />
       </list>
     </option>
   </component>
@@ -182,7 +201,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.proving_ground">
+  <component name="RunManager" selected="Python.least_squares_proving_ground">
     <configuration name="context" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="swarm-simplex-bootstrap" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -246,7 +265,7 @@
       <option name="INPUT_FILE" value="" />
       <method v="2" />
     </configuration>
-    <configuration name="multiprocessing_example" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration name="least_squares_proving_ground" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="swarm-simplex-bootstrap" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -254,11 +273,11 @@
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/ssb_optimize/ssb_optimize" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/multiprocessing_example.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
@@ -290,11 +309,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Python.least_squares_proving_ground" />
         <item itemvalue="Python.proving_ground" />
         <item itemvalue="Python.least_squares_bootstrap (1)" />
         <item itemvalue="Python.context" />
         <item itemvalue="Python.least_squares_bootstrap" />
-        <item itemvalue="Python.multiprocessing_example" />
       </list>
     </recent_temporary>
   </component>
@@ -523,16 +542,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="9" selection-start-line="4" selection-start-column="6" selection-end-line="4" selection-end-column="9" />
-          <folding>
-            <element signature="e#0#51#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_bootstrap.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
@@ -560,22 +569,55 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_7.py">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/proving_ground.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="153">
+          <caret line="28" column="95" selection-start-line="28" selection-start-column="95" selection-end-line="28" selection-end-column="95" />
+          <folding>
+            <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$APPLICATION_CONFIG_DIR$/scratches/scratch_8.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="77" column="36" selection-end-line="89" />
+          <folding>
+            <element signature="e#0#51#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="187">
+          <caret line="79" column="22" lean-forward="true" selection-start-line="79" selection-start-column="22" selection-end-line="79" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#51#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="306">
-          <caret line="323" column="73" lean-forward="true" selection-start-line="323" selection-start-column="73" selection-end-line="323" selection-end-column="73" />
+        <state relative-caret-position="2145">
+          <caret line="749" column="42" selection-start-line="749" selection-start-column="42" selection-end-line="749" selection-end-column="42" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/proving_ground.py">
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="442">
-          <caret line="28" column="95" selection-start-line="28" selection-start-column="95" selection-end-line="28" selection-end-column="95" />
+        <state relative-caret-position="289">
+          <caret line="35" column="10" selection-start-line="35" selection-start-column="10" selection-end-line="35" selection-end-column="10" />
           <folding>
-            <element signature="e#0#23#0" expanded="true" />
+            <element signature="e#0#33#0" expanded="true" />
           </folding>
         </state>
       </provider>

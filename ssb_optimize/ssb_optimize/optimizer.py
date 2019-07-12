@@ -389,7 +389,7 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
     # re-evaluate the objective function at all points. If the bisection routine doesn't yield a valid simplex (where
     # the objective function is finite for all points) after 100 iterations, then the initial point could be very
     # close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value
-    # that is further away from the bounds and constraints that define the problem space.
+    # that is further away from the bounds and/or constraints that define the problem space.
     counter = 0
     while _infinity_check(f_simplex) is True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
@@ -654,14 +654,21 @@ def _function_wrapper(argument):
 
     objective_function_element_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
     """
-    func, theta, x, fx, w, b, args, kwargs, bound, const = argument
+    func, theta, x, fx, w, b, args, kwargs = argument
     # New call signature --> penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
     # Old call signature --> func(x, *theta, *args, **kwargs)
     # Disagreement between structures requires us to combine theta and args into one tuple to pass.
-    args_list = theta.append(args)
-    args_tuple = tuple(args_list)
-    penalized = _penalized_func(x, func, args=args_tuple, kwargs=kwargs, bounds=bound, constraints=const)
-    return (w * b) * (penalized - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
+    # arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list,
+    #                               bound_list, const_list)))
+    # Numpy converts all objects of type list to np.ndarray.  To make other parts of this program behave correctly,
+    # we have to convert all these objects back to list.
+    # if isinstance(theta, (np.ndarray, np.generic)):
+    #     theta = theta.tolist()
+    # if isinstance(x, (np.ndarray, np.generic)):
+    #     x = x.tolist()
+    # if isinstance(bound, (np.ndarray, np.generic)):
+    #     bound = [tuple(i) for i in bound.tolist()]
+    return (w * b) * (func(x, *theta, *args, **kwargs) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
@@ -680,6 +687,8 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
 
     least_squares_objective_function = sum_over_i{result_i}
     result_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
+
+    The impact of bounds and constraints is added after the least_squares_objective_function has been evaluated.
 
     The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
     performance improvement. The Python multiprocessing library often results in slower performance because of the
@@ -706,42 +715,46 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         TypeError: kwargs must be a list or tuple of length len(x) containing kwargs dictionaries
     """
     x_array = np.array(x)
-    fx_array = np.array(fx)
+    if len(x) == len(fx):
+        fx_array = np.array(fx)
+    else:
+        raise TypeError("fx must be a list of length len(x)")
     if w is None:
         w_array = np.ones(len(x))
-    else:
+    elif len(x) == len(w):
         w_array = np.array(w)
+    else:
+        raise TypeError("w must be a list of length len(x)")
     if b is None:
         b_array = np.ones(len(x))
-    else:
+    elif len(x) == len(b):
         b_array = np.array(b)
+    else:
+        raise TypeError("b must be a list of length len(x)")
     func_list = [func] * len(x)
     theta_list = [theta] * len(x)
     if args is None:
         args_list = [()] * len(x)
-    elif isinstance(args, (list, tuple)):
+    elif isinstance(args, (list, tuple)) and len(x) == len(args):
         args_list = args
     else:
         raise TypeError("args must be a list or tuple of length len(x) containing args lists or args tuples")
     if kwargs is None:
         kwargs_list = [{}] * len(x)
-    elif isinstance(kwargs, (list, tuple)):
+    elif isinstance(kwargs, (list, tuple)) and len(x) == len(args):
         kwargs_list = kwargs
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
-    n = len(bounds)
+    n = len(theta)
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
-    bound_list = [bound] * len(x)
-    const_list = [const] * len(x)
-    arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list,
-                                  bound_list, const_list)))
+    arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list)))
     if multiprocess:
         with multiprocessing.Pool(NUM_PROCESSES) as p:
             results = p.map(_function_wrapper, arguments)
     else:
         results = np.apply_along_axis(_function_wrapper, 1, arguments)
-    return np.sum(results)
+    return np.sum(results) + _penalty(theta, bound, const)
 
 
 def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
