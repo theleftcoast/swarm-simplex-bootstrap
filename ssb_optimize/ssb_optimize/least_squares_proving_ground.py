@@ -75,8 +75,7 @@ minimum = opt.nelder_mead(theta, opt.least_squares_objective_function,
                                   'args':None,
                                   'kwargs':option,
                                   'bounds':None,
-                                  'constraints':None,
-                                  'multiprocess':False},
+                                  'constraints':None},
                           max_iter=1000)
 print(minimum)
 

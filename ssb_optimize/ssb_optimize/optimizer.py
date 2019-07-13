@@ -639,7 +639,7 @@ def _bootstrap_sample(array_size, sample_size):
     return bootstrap_result
 
 
-def _function_wrapper(argument):
+def _least_squares_function_wrapper(argument):
     """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
 
     This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument. Unfortunately,
@@ -672,7 +672,7 @@ def _function_wrapper(argument):
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
-                                     constraints=None, multiprocess=False):
+                                     constraints=None):
     """Returns the scalar result of evaluation of the least squares objective function.
 
     least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
@@ -705,7 +705,6 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         kwargs (dict, optional): Additional keyword arguments required by func.
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
-        multiprocess (bool, optional): Boolean indicator that enables parallel processing.
 
     Returns:
         scalar: objective_function_value
@@ -749,12 +748,43 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
     bound = bounds_check(n, bounds)
     const = constraints_check(constraints)
     arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list)))
-    if multiprocess:
-        with multiprocessing.Pool(NUM_PROCESSES) as p:
-            results = p.map(_function_wrapper, arguments)
-    else:
-        results = np.apply_along_axis(_function_wrapper, 1, arguments)
+    # multiprocess option makes more sense for bootstrapping rather than least squares objective function.  Simplify
+    # my life and remove this at the moment.  It is a headache to have a chain of functions where both parent and child
+    # functions have the ability to spawn processes.  Pain >> Gain
+    # if multiprocess:
+    #     with multiprocessing.Pool(NUM_PROCESSES) as p:
+    #         results = p.map(_function_wrapper, arguments)
+    # else:
+    results = np.apply_along_axis(_least_squares_function_wrapper, 1, arguments)
     return np.sum(results) + _penalty(theta, bound, const)
+
+
+def _least_squares_bootstrap_function_wrapper(argument):
+    """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
+
+    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument. Unfortunately,
+    this doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
+    args and kwargs and then call func_wrapper.
+
+    arguments = [(args, kwargs) for j in jobs_with_different_args_and_kwargs]
+
+    This wrapper supports bootstrap iterations for repreat optimization of the least_squares_objective_function.
+    """
+    func, theta, x, fx, w, b, args, kwargs, bound, const, small, flat, max, max_bisect, initial_size = argument
+    result = nelder_mead(theta, least_squares_objective_function,
+                         args=(func, x, fx),
+                         kwargs={'w': w,
+                                 'b': b,
+                                 'args': args,
+                                 'kwargs': kwargs,
+                                 'bounds': bound,
+                                 'constraints': const},
+                         small_tol=small,
+                         flat_tol=flat,
+                         max_iter=max,
+                         max_bisect_iter=max_bisect,
+                         initial_size=initial_size)
+    return result
 
 
 def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
@@ -790,22 +820,50 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
     Returns:
         (list of tuples): Vector containing the results of repeated least squares fitting of func to x and fx.
     """
-    result = []
-    for i in range(samples):
-        bootstrap = _bootstrap_sample(len(x), len(x))
-        result.append(nelder_mead(theta, least_squares_objective_function,
-                                  args=(func, x, fx),
-                                  kwargs={'w': weight,
-                                          'b': bootstrap,
-                                          'args': args,
-                                          'kwargs': kwargs,
-                                          'bounds': bounds,
-                                          'constraints': constraints,
-                                          'multiprocess': multiprocess},
-                                  small_tol=small_tol,
-                                  flat_tol=flat_tol,
-                                  max_iter=max_iter,
-                                  max_bisect_iter=max_bisect_iter,
-                                  initial_size=initial_size))
-
+    n = len(x)
+    b_list = [_bootstrap_sample(n, n) for _ in range(samples)]
+    x_list = [x] * samples
+    if len(x) == len(fx):
+        fx_list = [fx] * samples
+    else:
+        raise TypeError("fx must be a list of length len(x)")
+    if weight is None:
+        w_list = [np.ones(len(x))] * samples
+    elif len(x) == len(weight):
+        w_list = [weight] * samples
+    else:
+        raise TypeError("weight must be a list of length len(x)")
+    func_list = [func] * samples
+    theta_list = [theta] * samples
+    if args is None:
+        args_list = [[()] * len(x)] * samples
+    elif isinstance(args, (list, tuple)) and len(x) == len(args):
+        args_list = [args] * samples
+    else:
+        raise TypeError("args must be a list or tuple of length len(x) containing args lists or args tuples")
+    if kwargs is None:
+        kwargs_list = [[{}] * len(x)] * samples
+    elif isinstance(kwargs, (list, tuple)) and len(x) == len(kwargs):
+        kwargs_list = [kwargs] * samples
+    else:
+        raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
+    bound = bounds_check(len(theta), bounds)
+    const = constraints_check(constraints)
+    bound_list = [bound] * samples
+    const_list = [const] * samples
+    small_tol_list = [small_tol] * samples
+    flat_tol_list = [flat_tol] * samples
+    max_iter_list = [max_iter] * samples
+    max_bisect_iter_list = [max_bisect_iter] * samples
+    initial_size_list = [initial_size] * samples
+    arguments = np.array(list(zip(func_list, theta_list,
+                                  x_list, fx_list, w_list, b_list,
+                                  args_list, kwargs_list, bound_list, const_list,
+                                  small_tol_list, flat_tol_list,
+                                  max_iter_list, max_bisect_iter_list, initial_size_list)))
+    if multiprocess:
+        with multiprocessing.Pool(NUM_PROCESSES) as p:
+            result = p.map(_least_squares_bootstrap_function_wrapper, arguments)
+    else:
+        result = np.apply_along_axis(_least_squares_bootstrap_function_wrapper, 1, arguments)
     return result
