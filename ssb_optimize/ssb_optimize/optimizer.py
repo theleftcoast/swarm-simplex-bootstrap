@@ -741,7 +741,7 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         raise TypeError("args must be a list or tuple of length len(x) containing args lists or args tuples")
     if kwargs is None:
         kwargs_list = [{}] * len(x)
-    elif isinstance(kwargs, (list, tuple)) and len(x) == len(args):
+    elif isinstance(kwargs, (list, tuple)) and len(x) == len(kwargs):
         kwargs_list = kwargs
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
@@ -794,11 +794,18 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
     for i in range(samples):
         bootstrap = _bootstrap_sample(len(x), len(x))
         result.append(nelder_mead(theta, least_squares_objective_function,
-                                  args=(func, x, fx, weight, bootstrap, args, kwargs, bounds,
-                                        constraints, multiprocess),
+                                  args=(func, x, fx),
+                                  kwargs={'w': weight,
+                                          'b': bootstrap,
+                                          'args': args,
+                                          'kwargs': kwargs,
+                                          'bounds': bounds,
+                                          'constraints': constraints,
+                                          'multiprocess': multiprocess},
                                   small_tol=small_tol,
                                   flat_tol=flat_tol,
                                   max_iter=max_iter,
                                   max_bisect_iter=max_bisect_iter,
                                   initial_size=initial_size))
+
     return result

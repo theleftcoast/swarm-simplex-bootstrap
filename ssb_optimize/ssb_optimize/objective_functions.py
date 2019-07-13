@@ -5,11 +5,31 @@ These have odd topologies and a well-known global minimum; they're good for trap
 """
 import numpy as np
 
+
 def quadratic(x,a,b,c,d,e,f):
     """
     Name: Quadratic
     """
     return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+
+
+def sectioned_quadratic(x, a, b, c, d, e, f, section=None):
+    """
+    Name: Sectioned Quadratic
+    """
+    value = 0.0
+    if section == 'full':
+        value = a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+    elif section == 'a':
+        value = a*x[0]**2 + b*x[1]**2
+    elif section == 'b':
+        value = c*x[0] + d*x[1]
+    elif section == 'c':
+        value = e * x[0]*x[1] + f
+    else:
+        value = a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+    return value
+
 
 def sphere(args):
     """
@@ -18,6 +38,7 @@ def sphere(args):
     Search domain: -inf <= xi <= inf, 1 <= i <= n
     """
     return np.sum(args**2)
+
 
 def rosenbrock(args):
     """
@@ -30,6 +51,7 @@ def rosenbrock(args):
         rosen += 10.0 *((args[i]**2 ) -args[ i +1] )** 2 +( 1 -args[i] )**2
     return rosen
 
+
 def rastrigin(args):
     """
     Name: Rastrigin    
@@ -41,6 +63,7 @@ def rastrigin(args):
     for i in args:
         rast += i** 2 - a * np.cos(2 * np.pi * i ** 2)
     return rast
+
 
 def ackley(args):
     """
