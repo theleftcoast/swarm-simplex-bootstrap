@@ -68,21 +68,32 @@ b = None # opt._bootstrap_sample(len(x), len(x))
 
 precision = 3
 
-minimum = opt.nelder_mead(theta, opt.least_squares_objective_function,
-                          args=(func, x_repeat, fx),
-                          kwargs={'w':w,
-                                  'b':b,
-                                  'args':None,
-                                  'kwargs':option,
-                                  'bounds':None,
-                                  'constraints':None},
-                          max_iter=1000)
-print(minimum)
+# Least squares curve fit.
+# minimum = opt.nelder_mead(theta, opt.least_squares_objective_function,
+#                           args=(func, x_repeat, fx),
+#                           kwargs={'w':w,
+#                                   'b':b,
+#                                   'args':None,
+#                                   'kwargs':option,
+#                                   'bounds':None,
+#                                   'constraints':None},
+#                           max_iter=1000)
+# print(minimum)
 
-bootstrap_min = opt.least_squares_bootstrap(theta, func, x_repeat, fx,
-                                        weight=w, args=None, kwargs=option,
-                                        bounds=None, constraints=None,
-                                        multiprocess=False,
-                                        samples=100, max_iter=1000)
-print(bootstrap_min)
+# Bootstrap least squares fit (without parallel processing)
+# bootstrap_min = opt.least_squares_bootstrap(theta, func, x_repeat, fx,
+#                                         weight=w, args=None, kwargs=option,
+#                                         bounds=None, constraints=None,
+#                                         multiprocess=False,
+#                                         samples=100, max_iter=1000)
+# print(bootstrap_min)
+
+# Bootstrap least squares fit (with parallel processing)
+if __name__ == "__main__":
+     bootstrap_parallel_min = opt.least_squares_bootstrap(theta, func, x_repeat, fx,
+                                             weight=w, args=None, kwargs=option,
+                                             bounds=None, constraints=None,
+                                             multiprocess=True,
+                                             samples=100, max_iter=1000)
+     print(bootstrap_parallel_min)
 

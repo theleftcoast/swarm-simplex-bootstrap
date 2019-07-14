@@ -3,17 +3,26 @@ import itertools
 import numbers
 import multiprocessing
 
+# Global variables used for multiprocessing.
+NUM_CPUS = multiprocessing.cpu_count()
+NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
+
 
 def bounds_check(n, bounds=None):
     """Check bounds list of size 'n' for consistency and return the list with basic problems corrected.
 
-    A valid bounds list is a list of bound tuples. --> [(bound_tuple), ... ,(bound_tuple)]
+    A valid bounds list is a list of bound tuples or bound lists. --> [(bound_tuple), ... ,(bound_tuple)]
+                                                                  --> [[bound_list], ... ,[bound_list]]
 
-    A bound tuple specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
+    Support for bounds numpy ndarrays is provided but has not been thoroughly tested.  The ndarray is simply converted
+    into a list of lists and processed like a regular bounds list.
+
+    A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
     space. If there are no boundaries for a particular dimension of the problem space (i.e. infinity or -infinity),
-    then specify 'None' for that element of the bound tuple.
+    then specify 'None' for that element of the bound.
 
     bound_tuple --> (min, max), (None, max), (min, None), (None, None)
+    bound_list --> [min, max], [None, max], [min, None], [None, None]
 
     Args:
         n (int): Size of bounds list.
@@ -25,7 +34,7 @@ def bounds_check(n, bounds=None):
     Raises:
         TypeError: n must be an integer
         ValueError: length of bounds list must equal dimension n passed to bounds_check
-        TypeError: bound must be a (min, max) tuple
+        TypeError: bound must be a (min, max) tuple or [min, max] list
         TypeError: bounds min value must be a number
         TypeError: bounds max value must be a number
         ValueError: bounds min must be less than max
@@ -36,6 +45,8 @@ def bounds_check(n, bounds=None):
     # Check validity of the bounds list.
     if bounds is None:
         bounds = [(None, None)]*n
+    if isinstance(bounds, np.ndarray):
+        bounds = bounds.tolist()
     if len(bounds) != n:
         raise ValueError('length of bounds list must equal dimension n passed to bounds_check')
     lower = np.zeros(n)
@@ -44,8 +55,8 @@ def bounds_check(n, bounds=None):
         if bound is None:
             lower[i] = -np.inf
             upper[i] = np.inf
-        elif not isinstance(bound, tuple) or len(bound) != 2:
-            raise TypeError('bounds[%d] must be a (min, max) tuple' % i)
+        elif not isinstance(bound, (tuple, list)) or len(bound) != 2:
+            raise TypeError('bounds[%d] must be a (min, max) tuple or [min, max] list' % i)
         else:
             lb, ub = bound
             if lb is None:
@@ -621,10 +632,6 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     return personal_best_position[final_ordered[0]]
 
 
-NUM_CPUS = multiprocessing.cpu_count()
-NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
-
-
 def _bootstrap_sample(array_size, sample_size):
     """
     Returns an array of integers which is a uniform random sample consisting of [sample_size] elements taken from an
@@ -770,7 +777,9 @@ def _least_squares_bootstrap_function_wrapper(argument):
 
     This wrapper supports bootstrap iterations for repreat optimization of the least_squares_objective_function.
     """
-    func, theta, x, fx, w, b, args, kwargs, bound, const, small, flat, max, max_bisect, initial_size = argument
+    func, theta, x, fx, w, b, args, kwargs, bounds, constraints, small, flat, max, max_bisect, initial_size = argument
+    bound = bounds_check(len(theta), bounds)
+    const = constraints_check(constraints)
     result = nelder_mead(theta, least_squares_objective_function,
                          args=(func, x, fx),
                          kwargs={'w': w,
@@ -847,10 +856,8 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
         kwargs_list = [kwargs] * samples
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
-    bound = bounds_check(len(theta), bounds)
-    const = constraints_check(constraints)
-    bound_list = [bound] * samples
-    const_list = [const] * samples
+    bound_list = [bounds] * samples
+    const_list = [constraints] * samples
     small_tol_list = [small_tol] * samples
     flat_tol_list = [flat_tol] * samples
     max_iter_list = [max_iter] * samples
