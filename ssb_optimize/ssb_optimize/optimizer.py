@@ -513,6 +513,9 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     Particle Swarm Optimization. (n.d.). In Computational Intelligence (pp. 289–358). John Wiley & Sons, Ltd.
         https://doi.org/10.1002/9780470512517.ch16
 
+    The distance between the two best points can be used as an estimate for the initial simplex size if the
+    Nelder-Mead algorithm is used to refine the optimum. A good estimate is (distance_between_best_two_pts)/4.0.
+
     Args:
         func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> scalar.
         args (tuple, optional): Additional positional arguments required by func (if any).
@@ -527,6 +530,7 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
 
     Returns:
         np.array: Vector representing the local minimum of func.
+        scalar: Initial simplex size estimate for the Nelder-Mead minimization algorithm.
 
     Raises:
         TypeError: func must be callable
@@ -538,8 +542,6 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
         TypeError: args must be a tuple
         TypeError: kwargs must be a dictionary
         ValueError: neighborhood_size must be less than or equal to swarm_size
-
-    TODO: return nelder_mead_initial_size (need to look at how this impacts existing use cases and test cases).
     """
     # Validate bounds list and constraints dictionary are formatted correctly
     n = len(bounds)
@@ -585,7 +587,7 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     neighborhood_best_position = np.zeros(shape=(swarm_size, dimension))
     neighborhood_best_value = np.full(shape=swarm_size, fill_value=np.inf)
     # The distance between the best two swarm points is a great estimate for initial_size in the Nelder-Mead algorithm.
-    nelder_mead_initial_size = 0.0
+    nelder_mead_initial_simplex_size = 0.0
     # Begin particle swarm iterations.
     counter = 0
     while counter < max_iter:
@@ -596,7 +598,7 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
         ordered = np.argsort(current_combined_value)
         flat = np.absolute(current_combined_value[ordered[0]] - current_combined_value[ordered[1]])
         small = np.linalg.norm(current_position[ordered[0]] - current_position[ordered[1]])
-        nelder_mead_initial_size = small
+        nelder_mead_initial_simplex_size = small
         # Evaluate if termination criteria are met and break while loop if so.
         if small < small_tol:
             break
@@ -629,7 +631,7 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
         current_velocity = new_velocity.copy()
         counter = counter + 1
     final_ordered = np.argsort(personal_best_value)
-    return personal_best_position[final_ordered[0]]
+    return personal_best_position[final_ordered[0]], nelder_mead_initial_simplex_size/4.0
 
 
 def _bootstrap_sample(array_size, sample_size):
@@ -829,8 +831,8 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
     Returns:
         (list of tuples): Vector containing the results of repeated least squares fitting of func to x and fx.
     """
-    n = len(x)
-    b_list = [_bootstrap_sample(n, n) for _ in range(samples)]
+    func_list = [func] * samples
+    theta_list = [theta] * samples
     x_list = [x] * samples
     if len(x) == len(fx):
         fx_list = [fx] * samples
@@ -842,8 +844,8 @@ def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=N
         w_list = [weight] * samples
     else:
         raise TypeError("weight must be a list of length len(x)")
-    func_list = [func] * samples
-    theta_list = [theta] * samples
+    n = len(x)
+    b_list = [_bootstrap_sample(n, n) for _ in range(samples)]
     if args is None:
         args_list = [[()] * len(x)] * samples
     elif isinstance(args, (list, tuple)) and len(x) == len(args):

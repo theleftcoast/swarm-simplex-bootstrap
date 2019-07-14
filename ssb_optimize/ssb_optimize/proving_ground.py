@@ -31,10 +31,11 @@ x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
 
-x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
-x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
+x_ps, nm_init_size = opt.particle_swarm(func, args=(), kwargs={}, bounds=bounds, constraints=constraints)
+x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints, initial_size=nm_init_size)
 
 print(x_ps)
+print(nm_init_size)
 print(x_nm)
 
 
@@ -58,10 +59,11 @@ x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
 
-x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
-x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
+x_ps, nm_init_size = opt.particle_swarm(func, args=(), kwargs={}, bounds=bounds, constraints=constraints)
+x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints, initial_size=nm_init_size)
 
 print(x_ps)
+print(nm_init_size)
 print(x_nm)
 
 x = [1.5, 1.5]
@@ -82,10 +84,11 @@ x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
 
-x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
-x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
+x_ps, nm_init_size = opt.particle_swarm(func, args=(), kwargs={}, bounds=bounds, constraints=constraints)
+x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints, initial_size=nm_init_size)
 
 print(x_ps)
+print(nm_init_size)
 print(x_nm)
 
 x = [1.5, 1.5]
@@ -106,8 +109,14 @@ x_0 = opt.best_point(feasbile_points, func, args=(), kwargs={})
 
 print(x_0)
 
-x_ps = opt.particle_swarm(func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
-x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints)
+x_ps, nm_init_size = opt.particle_swarm(func, args=(), kwargs={}, bounds=bounds, constraints=constraints)
+x_nm = opt.nelder_mead(x_ps,func,args=(),kwargs={}, bounds=bounds, constraints=constraints, initial_size=nm_init_size)
 
 print(x_ps)
+print(nm_init_size)
 print(x_nm)
+
+x_beale = [3.0, 0.5]
+print(constraint_a(x_beale))
+print(constraint_b(x_beale))
+print(constraint_c(x_beale))
