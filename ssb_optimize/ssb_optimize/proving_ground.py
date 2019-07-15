@@ -11,6 +11,11 @@ def constraint_b(x):
 def constraint_c(x):
     return x[0] ** 2 + x[1] ** 2 - 2.0
 
+import sys
+print(sys.version_info[0])
+print(sys.version_info[1])
+
+
 x = [0, 0]
 dim = len(x)
 bounds = [(-15, 15), (-5, 25)]
@@ -120,3 +125,8 @@ x_beale = [3.0, 0.5]
 print(constraint_a(x_beale))
 print(constraint_b(x_beale))
 print(constraint_c(x_beale))
+
+print(opt.nelder_mead.__doc__)
+help(opt.nelder_mead)
+
+opt.

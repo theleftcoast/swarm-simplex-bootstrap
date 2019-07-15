@@ -14,8 +14,8 @@ def bounds_check(n, bounds=None):
     A valid bounds list is a list of bound tuples or bound lists. --> [(bound_tuple), ... ,(bound_tuple)]
                                                                   --> [[bound_list], ... ,[bound_list]]
 
-    Support for bounds numpy ndarrays is provided but has not been thoroughly tested.  The ndarray is simply converted
-    into a list of lists and processed like a regular bounds list.
+    Support for bounds numpy ndarrays is provided.  The ndarray is simply converted into a list of lists and processed
+    like a regular bounds list.
 
     A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
     space. If there are no boundaries for a particular dimension of the problem space (i.e. infinity or -infinity),
@@ -209,7 +209,7 @@ def _feasible_points_grid(bounds, constraints=None, grid_size=7, inf_repl=10.0 *
 
 
 def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=None, inf_repl=10.0**4):
-    """Generate an array of feasible points using random sampling which satisfy the bounds and constraints.
+    """Generate an array of points using random sampling which satisfy the bounds and constraints.
 
     The variables point_count, max_iter, and inf_repl specify how the point generation procedure functions.  The
     procedure randomly generates a point, evaluates the point against both the bounds and constraints, and stores that
@@ -278,7 +278,7 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
 
 
 def best_point(points, func, args=None, kwargs=None):
-    """Return the point corresponding to the lowest evaluated value of func.
+    """Return the point corresponding to the lowest evaluated value of 'func'.
 
     Args:
         points (np.array): Array of feasible points (i.e. np.array returned by feasible_points_random).
