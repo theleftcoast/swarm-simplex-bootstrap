@@ -7,14 +7,13 @@ import multiprocessing
 NUM_CPUS = multiprocessing.cpu_count()
 NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
 
-
 def bounds_check(n, bounds=None):
     """Check bounds list of size 'n' for consistency and return the list with basic problems corrected.
 
     A valid bounds list is a list of bound tuples or bound lists. --> [(bound_tuple), ... ,(bound_tuple)]
                                                                   --> [[bound_list], ... ,[bound_list]]
 
-    Support for bounds numpy ndarrays is provided.  The ndarray is simply converted into a list of lists and processed
+    Support for bounds numpy ndarrays is provided. The ndarray is simply converted into a list of lists and processed
     like a regular bounds list.
 
     A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem
@@ -84,15 +83,15 @@ def constraints_check(constraints=None):
 
     A valid constraints list is a list of constraint dictionaries. --> [{const_dict}, ... ,{const_dict}]
 
-    A constraint dictionary specifies individual constraint function, arguments (args and kwargs), and a constraint
-    type.  The value corresponding the 'func' key is a callable function which defines the constraint.  Traditional
+    A constraint dictionary specifies individual constraint functions, arguments (args and kwargs), and constraint
+    types.  The value corresponding the 'func' key is a callable function which defines the constraint.  Traditional
     functions ('def func(x): ...') and lambda functions ('func = lambda x: ...') both work.  The function signature
-    must be of the form 'func(x, *args, **kwargs)' where 'x' is a scalar or a list of scalars representing a vector.
-    The return value from 'func' must be a scalar.  Values corresponding to the 'args' and 'kwargs' keys are any
+    must be of the form 'func(x, *args, **kwargs)' where 'x' is a float or a list of floats representing a vector.
+    The return value from 'func' must be a float.  Values corresponding to the 'args' and 'kwargs' keys are any
     additional arguments to be passed to 'func' (both are optional).  Positional arguments (args) are specified as
-    a tuple and keyword arguments (kwargs) are specified as a dictionary. The value corresponding to the 'type' key
-    specifies the inequality that the scalar returned from 'func' must obey for the constraint to be satisfied.
-    Values for the inequality specification may be '>0', '>=0', '<0', '<=0'.
+    a tuple and keyword arguments (kwargs) are specified as a dictionary.  The 'type' key specifies the inequality
+    that the value returned from 'func' must obey for the constraint to be satisfied.  Values for the inequality
+    specification may be '>0', '>=0', '<0', '<=0'.
 
     const_dict --> {'type': ineq_spec_string, 'func': callable_func, 'args': (args_tuple), 'kwargs': {kwargs_dict}}
 
@@ -217,21 +216,24 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
     until max_iter has been reached.  If the loop terminates due to reaching the max_iter criteria, that is an
     indication that the feasible space (the region where both bounds and constraints are both satisfied) is a small
     region inside of the bounded space.  To overcome this problem, you can increase max_iter from it's default value
-    (which is point_count*100) to a much larger value.  If any of the bound tuples contains +/- np.inf, this means that
-    there is no boundary for that particular dimension of the problem space.  The procedure replaces 'None' with the
-    value specified in inf_repl to create a bounded region for the point generation procedure to work inside.
+    (which is point_count*1000) to a much larger value.  If any of the bound tuples contains +/- np.inf, this means that
+    there is no boundary for that particular dimension of the problem space.  The procedure replaces +/- np.inf with
+    the value specified in inf_repl to create a bounded region for the point generation procedure to work inside.
 
     Args:
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         point_count(int): Number of random points to be generated.
         max_iter (int): Termination criteria based on maximum number of iterations.
-        inf_repl (scalar): Value used to replace +/- np.inf in any of the bound tuples specified in bounds.
+        inf_repl (float): Value used to replace +/- np.inf in any of the bound tuples specified in bounds.
 
     Returns:
         np.array: Array of points that satisfy the bounds and constraints.
 
     Raises:
+        TypeError: point count must be an integer
+        TypeError: max_iter must be an integer
+        TypeError: inf_repl must be a nubmer
         RuntimeWarning: len(feasible_points) is less than the specified point_count
     """
     # Validate input variables
@@ -282,7 +284,7 @@ def best_point(points, func, args=None, kwargs=None):
 
     Args:
         points (np.array): Array of feasible points (i.e. np.array returned by feasible_points_random).
-        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> scalar.
+        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func (if any).
 
@@ -330,22 +332,22 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
 
     Args:
         x0 (list): Vector representing the initial starting point for optimization algorithm.
-        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> scalar.
+        func (callable): Scalar function to be minimized.  Signature must be func(x, *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func (if any).
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
-        small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
-        flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        small_tol (float, optional): Termination criteria based on vector norm between best and worst point in simplex.
+        flat_tol (float, optional): Termination criteria based on distance between best and worst point in simplex.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
         max_bisect_iter (int, optional): Termination criteria for bisection loop in initial simplex generation.
-        initial_size (scalar, optional): Initial simplex size.
+        initial_size (float, optional): Initial simplex size.
 
     Returns:
         (np.array): Vector representing the local minimum of func.
 
     Raises:
-        TypeError: x0 must be a list of scalars or a numpy array
+        TypeError: x0 must be a list of floats or a numpy array
         TypeError: func must be callable
         TypeError: max_iter must be an integer
         TypeError: max_bisect_iter must be an integer
@@ -365,7 +367,7 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
     args = args or ()
     kwargs = kwargs or {}
     if not isinstance(x0, (list, np.ndarray)):
-        raise TypeError('x0 must be a list of scalars or a numpy array')
+        raise TypeError('x0 must be a list of floats or a numpy array')
     if not callable(func):
         raise TypeError('func must be callable')
     if not isinstance(max_iter, int):
@@ -390,17 +392,17 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
     f_simplex = np.apply_along_axis(_penalized_func, 1, simplex, func, args=args, kwargs=kwargs, bounds=bound,
                                     constraints=const)
     # Check that the objective function evaluates to a finite value for all points in the simplex. If the objective
-    # function evaluates to +/- np.inf, then this signals a bound or constraint violation.  One reason this can
+    # function evaluates to +/- np.inf, this signals a bound or constraint violation.  One reason this might
     # happen is that the simplex is too big to fit inside the bounded and constrained problem space.  A good check
     # to see if bounds and constraints that define the problem space are reasonably 'well conditioned' is to run
     # feasible_points_random and check that fraction_violated is in the range 0.05-1.00 (or so).  If fraction_
-    # violated is <0.05, then we know that the bounded and constrained problem space (the feasible problem space) is
-    # a tiny fraction of the bounded space which means we should re-evaluate the problem space passed to nedler_mead.
-    # If fraction_violated is in the range 0.05-1.00, then we bisect the simplex size, generate a new simplex, and
+    # violated is <<0.05, then we know that the bounded and constrained problem space (the feasible problem space) is
+    # a tiny fraction of the bounded space.  If this is true, re-evaluate the problem space passed to nedler_mead.
+    # If fraction_violated is in the range 0.05-1.00, then bisect the simplex size, generate a new simplex, and
     # re-evaluate the objective function at all points. If the bisection routine doesn't yield a valid simplex (where
-    # the objective function is finite for all points) after 100 iterations, then the initial point could be very
-    # close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0 value
-    # that is further away from the bounds and/or constraints that define the problem space.
+    # the penalized objective function is finite for all points) after 100 iterations, then the initial point could be
+    # very close to a bound or constraint. If this is the case, then restart the nelder_mead algorithm with an new x0
+    # value that is further away from the bounds and/or constraints that define the problem space.
     counter = 0
     while _infinity_check(f_simplex) is True and counter <= max_bisect_iter:
         initial_size = initial_size/2.0
@@ -517,20 +519,20 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     Nelder-Mead algorithm is used to refine the optimum. A good estimate is (distance_between_best_two_pts)/4.0.
 
     Args:
-        func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> scalar.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func (if any).
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
-        small_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
-        flat_tol (scalar, optional): Termination criteria based on distance between best and worst point in simplex.
+        small_tol (float, optional): Termination criteria based on vector norm between best two point in swarm.
+        flat_tol (float, optional): Termination criteria based on distance between best two point in swarm.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
         neighborhood_size (int, optional): Neighborhood size for local-best algorithm.
         swarm_size (int, optional): Number of particles in the swarm.
 
     Returns:
         np.array: Vector representing the local minimum of func.
-        scalar: Initial simplex size estimate for the Nelder-Mead minimization algorithm.
+        float: Initial simplex size estimate for the Nelder-Mead minimization algorithm.
 
     Raises:
         TypeError: func must be callable
@@ -651,7 +653,7 @@ def _bootstrap_sample(array_size, sample_size):
 def _least_squares_function_wrapper(argument):
     """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
 
-    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument. Unfortunately,
+    This gets around the fact that mp.Pool.map() and np.apply_along_axis() take one iterable argument. Unfortunately,
     this doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
     args and kwargs and then call func_wrapper.
 
@@ -664,61 +666,39 @@ def _least_squares_function_wrapper(argument):
     objective_function_element_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
     """
     func, theta, x, fx, w, b, args, kwargs = argument
-    # New call signature --> penalized_func(x, func, args=(), kwargs={}, bounds=None, constraints=None)
-    # Old call signature --> func(x, *theta, *args, **kwargs)
-    # Disagreement between structures requires us to combine theta and args into one tuple to pass.
-    # arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list,
-    #                               bound_list, const_list)))
-    # Numpy converts all objects of type list to np.ndarray.  To make other parts of this program behave correctly,
-    # we have to convert all these objects back to list.
-    # if isinstance(theta, (np.ndarray, np.generic)):
-    #     theta = theta.tolist()
-    # if isinstance(x, (np.ndarray, np.generic)):
-    #     x = x.tolist()
-    # if isinstance(bound, (np.ndarray, np.generic)):
-    #     bound = [tuple(i) for i in bound.tolist()]
     return (w * b) * (func(x, *theta, *args, **kwargs) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
                                      constraints=None):
-    """Returns the scalar result of evaluation of the least squares objective function.
+    """Returns the result of evaluation of the least squares objective function.
 
     least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
 
     The least squares objective function is the core of parameter fitting.  This implementation facilitates weights
-    as well as bootstrapping. The difference between fx and func(theta, xi, *args_i, **kwargs_i) is a measure  of the
-    goodness of fit of func to the data.
-
-    In this implementation, the objective function is broken down into pieces to improve code structure as well
-    as to facilitate parallel processing.  The function structure allows us to evaluate each result_i in an
-    embarrassingly parallel fashion if the objection function is very expensive to evaluate.
-
-    least_squares_objective_function = sum_over_i{result_i}
-    result_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
-
-    The impact of bounds and constraints is added after the least_squares_objective_function has been evaluated.
-
-    The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
-    performance improvement. The Python multiprocessing library often results in slower performance because of the
-    system overhead required to manage multiple processes.
+    as well as bootstrapping. The difference between 'fx' and func(theta, xi, *args_i, **kwargs_i) is a measure of the
+    goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is parameterized to fit the data
+    set ('x' and 'fx').
 
     Args:
         theta (list): Vector representing the starting point for optimization algorithm.
         x (list): List of tuples or list of lists representing input values of a data set.
-        fx (list): List of scalars representing output values of a data set.
-        w (list, optional): List of scalars representing the weight (often '1.0/std_error_i').
+        fx (list): List of floats representing output values of a data set.
+        w (list, optional): List of floats representing the weight (often '1.0/std_error_i').
         b (list, optional): List of integers representing the bootstrap multiplier.
-        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> scalar.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func.
         kwargs (dict, optional): Additional keyword arguments required by func.
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
 
     Returns:
-        scalar: objective_function_value
+        float: objective_function_value
 
     Raises:
+        TypeError: fx must be a list of length len(x)
+        TypeError: w must be a list of length len(x)
+        TypeError: b must be a list of length len(x)
         TypeError: args must be a list or tuple of length len(x) containing args lists or args tuples
         TypeError: kwargs must be a list or tuple of length len(x) containing kwargs dictionaries
     """
@@ -754,16 +734,10 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
     n = len(theta)
-    bound = bounds_check(n, bounds)
-    const = constraints_check(constraints)
+    # TODO: Remove bounds_check and constraints_check. Not needed since nelder_mead and particle_swarm are called first.
+    bound = bounds # bounds_check(n, bounds)
+    const = constraints # constraints_check(constraints)
     arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list)))
-    # multiprocess option makes more sense for bootstrapping rather than least squares objective function.  Simplify
-    # my life and remove this at the moment.  It is a headache to have a chain of functions where both parent and child
-    # functions have the ability to spawn processes.  Pain >> Gain
-    # if multiprocess:
-    #     with multiprocessing.Pool(NUM_PROCESSES) as p:
-    #         results = p.map(_function_wrapper, arguments)
-    # else:
     results = np.apply_along_axis(_least_squares_function_wrapper, 1, arguments)
     return np.sum(results) + _penalty(theta, bound, const)
 
@@ -771,7 +745,7 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
 def _least_squares_bootstrap_function_wrapper(argument):
     """Takes single argument, unpacks it to args and kwargs components, and passes them to func.
 
-    This gets around the fact that mp.Pool.map() and mp.Pool.starmap() only take one iterable argument. Unfortunately,
+    This gets around the fact that mp.Pool.map() and np.apply_along_axis() take one iterable argument. Unfortunately,
     this doesn't allow us to pass multiple args and kwargs which is a problem.  Build a single argument from all input
     args and kwargs and then call func_wrapper.
 
@@ -798,41 +772,75 @@ def _least_squares_bootstrap_function_wrapper(argument):
     return result
 
 
-def least_squares_bootstrap(theta, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
+def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
                             multiprocess=False, samples=500, small_tol=10.0**-15, flat_tol=10.0**-13, max_iter=10000,
                             max_bisect_iter=100, initial_size=0.01):
-    """Returns list of tuples containing the results (thetas) of repeated least squares fitting of func to x and fx.
+    """Returns a list of the results of repeated least squares fitting of func to random samples taken from x and fx.
 
-    Repeated evaluation of the 'least_squares_objective_function' where the 'bootstrap' multiplier is used to drive
-    random sampling from 'x', 'fx', and 'weight' with replacement.  THe bootstrap multiplier ('bi') is implemented in
-    a separate function and returns a list of scalar multipliers that allow random sampling with replacement. This
-    resulting list of tuples can be used to estimate the distribution of each element of theta.
+    The least_squares_bootstrap function drives repeated evaluation of the least_squares_objective_function where the
+    input parameters to each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping
+    technique uses each result (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics
+    which describe the overall result set (i.e. fitted model parameter uncertainties).
 
-    least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
+    Random sampling with replacement from from 'x', 'fx', and 'weight' is implemented by generating a bootstrap
+    multiplier, 'bi', and passing that to the least_squares_objective function.  Please see the documentation for
+    least_squares_objective_function and _bootstrap_sample to see how the bootstrap multiplier is used to achieve
+    random sampling with replacement.
+
+    In this implementation, each evaluation of the least_squares_objective_fuction (each 'result_i') can be made
+    independently which lets us parrallelize in an 'embarrassingly parallel fashion' using mp.Pool.map().  This can
+    improve performance if the 'func' passed to the least_squares_objective_function is expensive to evaluate.
+
+    The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
+    performance improvement. The Python multiprocessing library often results in slower performance because of the
+    system overhead required to manage multiple processes.
+
+    If least_squares_bootstrap is used with 'multiprocess = True', then be careful to use a __name__ check block to
+    separate the library functions from the main script where they are called.  If this is not done, then code which
+    creates an mp.Pool (which is inside least_squares_bootstrap function) is called repeatedly.  The result is that
+    an mp.Pool will try to launch another mp.Pool that will try to launch another mp.Pool that will....
+
+    Use the following __name__ check when calling least_squares_bootstrap to guard against this infinite loop.
+
+    if __name__ == "__main__":
+        bootstrap_parallel_min = opt.least_squares_bootstrap(theta, func, x_repeat, fx,
+                                                             weight=w, args=None, kwargs=option,
+                                                             bounds=None, constraints=None,
+                                                             multiprocess=True)
+
+    The initial starting point for the boostrap algorithm (theta0) is best generated by initially optimizing the
+    least_squares_objective_function using the particle_swarm algorithm.  The initial optimum from the particle_swarm
+    algorithm can be refined by optimizing again using the nelder_mead algorithm.
 
     Args:
-        theta (list): Vector representing the initial starting point for optimization algorithm.
-        func (callable): Scalar function to be minimized, ``func(x, *theta, *args, **kwargs)``.
+        theta0 (list): Vector representing the initial starting point for the bootstrapping algorithm.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> float.
         x (list): List of tuples or list of lists representing input values of a data set for func.
-        fx (list): List of scalars representing output values of a data set for func.
-        weight (list, optional): List of scalars representing the weight.
+        fx (list): List of floats representing output values of a data set for func.
+        weight (list, optional): List of floats representing the weight.
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func.
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
         constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
         samples (int, optional): Specification for the number of bootstrap samples to be run.
         multiprocess (bool, optional): Boolean indicator that enables parallel processing.
-        small_tol (scalar, optional): Nelder-Mead algorithm termination criteria.
-        flat_tol (scalar, optional): Nelder-Mead algorithm termination criteria.
+        small_tol (float, optional): Nelder-Mead algorithm termination criteria.
+        flat_tol (float, optional): Nelder-Mead algorithm termination criteria.
         max_iter (int, optional): Nelder-Mead algorithm termination criteria.
         max_bisect_iter (int, optional): Termination criteria for simplex generation loop in Nelder-Mead algorithm.
-        initial_size (scalar, optional): Initial simplex size in Nelder-Mead algorithm.
+        initial_size (float, optional): Initial simplex size in Nelder-Mead algorithm.
 
     Returns:
         (list of tuples): Vector containing the results of repeated least squares fitting of func to x and fx.
+
+    Raises:
+        TypeError: fx must be a list of length len(x)
+        TypeError: weight must be a list of length len(x)
+        TypeError: args must be a list or tuple of length len(x) containing args lists or args tuples
+        TypeError: kwargs must be a list or tuple of length len(x) containing kwargs dictionaries
     """
     func_list = [func] * samples
-    theta_list = [theta] * samples
+    theta_list = [theta0] * samples
     x_list = [x] * samples
     if len(x) == len(fx):
         fx_list = [fx] * samples

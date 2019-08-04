@@ -128,5 +128,3 @@ print(constraint_c(x_beale))
 
 print(opt.nelder_mead.__doc__)
 help(opt.nelder_mead)
-
-opt.
