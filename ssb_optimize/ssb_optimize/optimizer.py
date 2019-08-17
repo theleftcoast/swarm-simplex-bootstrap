@@ -506,7 +506,7 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
     return simplex[ordered[0]]
 
 
-def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-11, flat_tol=10.0**-9,
+def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-12, flat_tol=10.0**-10,
                    max_iter=2000, neighborhood_size=5, swarm_size=50):
     """Minimize a scalar function using the Particle Swarm algorithm.
 
@@ -523,7 +523,7 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
         args (tuple, optional): Additional positional arguments required by func (if any).
         kwargs (dict, optional): Additional keyword arguments required by func (if any).
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
-        constraints (list): Validated list of constraint dictionaries (i.e. constraints returned by constraints_check).
+        constraints (list, optional): Validated list of constraint dictionaries (i.e. returned by constraints_check).
         small_tol (float, optional): Termination criteria based on vector norm between best two point in swarm.
         flat_tol (float, optional): Termination criteria based on distance between best two point in swarm.
         max_iter (int, optional): Termination criteria based on maximum number of algorithm iterations.
