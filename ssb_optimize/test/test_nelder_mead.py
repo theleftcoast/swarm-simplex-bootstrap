@@ -1,6 +1,7 @@
-from ssb_optimize import objective_functions as obj, constraint_functions as const
+from ssb_optimize import objective_functions as obj
 from ssb_optimize.optimizer import nelder_mead
 from unittest import TestCase, main
+
 
 class ObjectiveFunctionTestCase(TestCase):
     func = obj.sphere
@@ -45,79 +46,90 @@ class ObjectiveFunctionTestCase(TestCase):
         minimum = nelder_mead(self.initial_pt, self.func)
         self.assertArrayAlmostEqual(minimum, self.global_minimum, places=self.precision)
 
-    def test_particle_swarm(self):
-        """TBD"""
-        pass
 
 class SphereTest(ObjectiveFunctionTestCase):
     func = obj.sphere
     initial_pt = [3.2, 2.1, 1.0, -1.0, -2.0]
     global_minimum = [0.0, 0.0, 0.0, 0.0, 0.0]
 
+
 class RosenbrockTest(ObjectiveFunctionTestCase):
     func = obj.rosenbrock
     initial_pt = [2.2, 1.1, 0.5, -0.5, -1.0]
     global_minimum = [1.0, 1.0, 1.0, 1.0, 1.0]
+
 
 class RastriginTest(ObjectiveFunctionTestCase):
     func = obj.rastrigin
     initial_pt = [0.05, 0.04, 0.06, -0.03, -0.02]
     global_minimum = [0.0, 0.0, 0.0, 0.0, 0.0]
 
+
 class AckleyTest(ObjectiveFunctionTestCase):
     func = obj.ackley
     initial_pt = [0.3, 0.1]
     global_minimum = [0.0, 0.0]
+
 
 class BealeTest(ObjectiveFunctionTestCase):
     func = obj.beale
     initial_pt = [3.5, 0.25]
     global_minimum = [3.0, 0.5]
 
+
 class GoldsteinPriceTest(ObjectiveFunctionTestCase):
     func = obj.goldstein_price
     initial_pt = [1.0, -1.0]
     global_minimum = [0.0, -1.0]
+
 
 class BoothTest(ObjectiveFunctionTestCase):
     func = obj.booth
     initial_pt = [1.0, -1.0]
     global_minimum = [1.0, 3.0]
 
+
 class MatyasTest(ObjectiveFunctionTestCase):
     func = obj.matyas
     initial_pt = [1.0, -1.0]
     global_minimum = [0.0, 0.0]
+
 
 class HimmelblauATest(ObjectiveFunctionTestCase):
     func = obj.himmelblau
     initial_pt = [3.1, 1.9]
     global_minimum = [3.0, 2.0]
 
+
 class HimmelblauBTest(ObjectiveFunctionTestCase):
     func = obj.himmelblau
     initial_pt = [-2.7, 3.0]
     global_minimum = [-2.805118, 3.131312]
+
 
 class HimmelblauCTest(ObjectiveFunctionTestCase):
     func = obj.himmelblau
     initial_pt = [-3.6, -3.4]
     global_minimum = [-3.779310, -3.283186]
 
+
 class HimmelblauDTest(ObjectiveFunctionTestCase):
     func = obj.himmelblau
     initial_pt = [3.4, -1.6]
     global_minimum = [3.584428, -1.848126]
+
 
 class ThreeHumpCamelTest(ObjectiveFunctionTestCase):
     func = obj.three_hump_camel
     initial_pt = [0.1, -0.1]
     global_minimum = [0.0, 0.0]
 
+
 class McCormickTest(ObjectiveFunctionTestCase):
     func = obj.mccormick
     initial_pt = [1.0, -1.0]
     global_minimum = [-0.54719, -1.54719]
+
 
 if __name__ == "__main__":
     main()

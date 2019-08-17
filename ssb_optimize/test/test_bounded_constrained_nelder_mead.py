@@ -1,7 +1,7 @@
-
 from ssb_optimize import objective_functions as obj, constraint_functions as const
 from ssb_optimize.optimizer import nelder_mead
 from unittest import TestCase, main
+
 
 class ObjectiveFunctionTestCase(TestCase):
     func = obj.sphere
@@ -53,9 +53,6 @@ class ObjectiveFunctionTestCase(TestCase):
     def test_nelder_mead_bound(self):
         self.assertRaises(ValueError, nelder_mead, self.initial_pt_invalid, self.func, bounds=self.bounds, constraints=self.constraints)
 
-    def test_particle_swarm(self):
-        """TBD"""
-        pass
 
 class SphereTest(ObjectiveFunctionTestCase):
     func = obj.sphere
@@ -64,6 +61,7 @@ class SphereTest(ObjectiveFunctionTestCase):
     initial_pt_valid = [-0.5, 1.0]
     initial_pt_invalid = [-500.0, 1000.0]
     global_minimum = [0.0, 0.0]
+
 
 class RosenbrockTestA(ObjectiveFunctionTestCase):
     func = obj.rosenbrock
@@ -74,6 +72,7 @@ class RosenbrockTestA(ObjectiveFunctionTestCase):
     initial_pt_invalid = [-500.0, 1000.0]
     global_minimum = [1.0, 1.0]
 
+
 class RosenbrockTestB(ObjectiveFunctionTestCase):
     func = obj.rosenbrock
     bounds = [(-1.5, 1.5), (-0.5, 2.5)]
@@ -81,6 +80,7 @@ class RosenbrockTestB(ObjectiveFunctionTestCase):
     initial_pt_valid = [0.0, 0.0]
     initial_pt_invalid = [-500.0, 1000.0]
     global_minimum = [1.0, 1.0]
+
 
 if __name__ == "__main__":
     main()
