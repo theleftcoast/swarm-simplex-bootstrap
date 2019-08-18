@@ -7,6 +7,17 @@ The emphasis of this library is paramterizing models using experimental data whe
 + Installation
 + Testing
 + Project Structure, Versioning, and Documentation
++ General Information
++ Test Functions for Minimization
++ Unconstrained Minimization with Nelder-Mead
++ Bounds
++ Bounded Minimization with Nelder-Mead
++ Particle Swarm Minimization
++ Particle Swarm Followed by Nelder-Mead Refinement
++ Constraints
++ Bounded and Constrained Minimization
++ Model Regression
++ Bootstrapping
 
 ### Installation
 ssb_optimize can be installed as a python package using pip. Package dependencies include numpy, itertools, numbers, and multiprocessing.
@@ -31,7 +42,7 @@ Versioning for publishing to PyPI follows the "major.minor.patch" format based o
 + minor version - when you add functionality in a backwards-compatible manner, and
 + patch version - when you make backwards-compatible bug fixes.
 
-[Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+The [Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) is a useful reference for keeping documentation up to date.
 
 ### General Information
 Start off by importing the 'optimizer' module.   
@@ -45,8 +56,8 @@ The functions contained in the 'optimizer' module are summarized below.
 + **best_point**: Return the point corresponding to the lowest evaluated value of 'func'.
 + **nelder_mead**: Minimize a scalar function using the Nelder-Mead simplex algorithm.
 + **particle_swarm**: Minimize a scalar function using the Particle Swarm algorithm.
-+ **least_squares_objective_function**: Returns the scalar result of evaluation of the least squares objective function.
-+ **least_squares_bootstrap**: Returns list of tuples containing the results (thetas) of repeated least squares fitting of func to x and fx.
++ **least_squares_objective_function**: Returns the result of evaluation of the least squares objective function.
++ **least_squares_bootstrap**: Returns a list of the results of repeated least squares fitting of func to random samples taken from x and fx.
 
 The docstrings for these functions contain additional information about how each function works, arguments, return values, and error handling.
 ```python
@@ -54,66 +65,71 @@ print(function.__doc__)
 help(function)
 ```
 ### Test Functions for Minimization
-the Test functions used in this tutorial all come from the [Test functions for optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization) Wikipedia page with additional information available from the [BenchmarkFncs Toolbox](http://benchmarkfcns.xyz/).  These test functions are used to demonstrate performance of minimization algorithms in situations relevant to real world applications.
+The test functions used in this tutorial are all described in the [Test functions for optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization) Wikipedia page.  These test functions are used to demonstrate performance of minimization algorithms in situations relevant to real world applications.
+
+Additional information for the test funtions used in this tutorial was taken from the following reference.
+
+Jamil, M., & Yang, X. S. (2013). A literature survey of benchmark functions for global optimisation problems. International Journal of Mathematical Modelling and Numerical Optimisation, 4(2), 150. https://doi.org/10.1504/ijmmno.2013.055204
+
 ##### Booth Function
-The Booth function is continuous and convex with one global minimum. The Booth function has a smooth approach to the global minimum.  This mimics the approach to a minimum for many functions when very near to a minimum.
+The Booth function is continuous, differentiable, non-separable, non-scalable, and unimodal. The Booth function has a smooth approach to the global minimum.  This mimics the smooth approach to a minimum for many functions when near a local or global minimum.
 
 ![Booth Function](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Booth%27s_function.pdf/page1-320px-Booth%27s_function.pdf.jpg "Booth Function")
 
 Python implementation of the Booth function:
 ```python
 def booth(args):
-    """
+    """ Booth function
+
     Global minimum: f(1.0,3.0) = 0.0
     Search domain: -10.0 <= x, y <= 10.0
     """
-    x = args[0]
-    y = args[1]
-    return (x + 2*y - 7) ** 2 + (2*x + y - 5) ** 2
+    return (args[0] + 2*args[1] - 7)**2 + (2*args[0] + args[1] - 5)**2
 ```
 
 ##### Rosenbrock Function
-The Rosenbrock function is continuous and convex with one globl minimum. The global minimum is inside a long, narrow, parabolic shaped flat valley. To find the valley is trivial but converging to the global minimum is difficult.
+The Rosenbrock function is continuous, differentiable, non-separable, scalable, and unimodal. The global minimum is inside a long, narrow, parabolic shaped flat valley. To find the valley is trivial but converging to the global minimum is difficult.
 
 ![Rosenbrock Function](https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Rosenbrock%27s_function_in_3D.pdf/page1-320px-Rosenbrock%27s_function_in_3D.pdf.jpg "Rosenbrock Function")
 
 Python implementation of the Rosenbrock function:
 ```python
 def rosenbrock(args):
-    """
+    """Rosenbrock function
+
     Global minimum: f(1,...,1) = 0.0
     Search domain: -inf <= xi <= inf, 1 <= i <= n
     """
     rosen = 0
-    for i in range(len(args ) -1):
-        rosen += 10.0*((args[i]**2) - args[i + 1])** 2 + (1 - args[i])**2
+    for i in range(len(args) - 1):
+        rosen += 10.0*((args[i]**2) - args[i + 1])**2 + (1 - args[i])**2
     return rosen
 ```
 
 ##### Ackley Function
-The Ackley function is continuous and non-convex, having many local minima but only one one global minimum. Many minimizing algorithms will become trapped in one of the many local minimum during a search for the global minimum. 
+The Ackley function is continuous, differentiable, non-separable, scalable, and multimodal. It has many local minima but only one one global minimum. Many minimizing algorithms will become trapped in one of the many local minimum during a search for the global minimum. 
 
 ![Ackley Function](https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ackley%27s_function.pdf/page1-320px-Ackley%27s_function.pdf.jpg "Ackley Function")
 
-Python implementation of the Acklye function:
 ```python
 def ackley(args):
-    """
+    """Ackley function
+
     Global minimum: f(0,0) = 0.0
     Search domain: -5.0 <= x, y <= 5.0
     """
-    firstSum = 0.0
-    secondSum = 0.0
+    first_sum = 0.0
+    second_sum = 0.0
     for c in args:
-        firstSum += c ** 2.0
-        secondSum += np.cos(2.0 * np.pi * c)
+        first_sum += c ** 2.0
+        second_sum += np.cos(2.0 * np.pi * c)
     n = float(len(args))
-    return -20.0*np.exp(-0.2*np.sqrt(firstSum/n)) - np.exp(secondSum/n) + 20.0 + np.e
+    return -20.0*np.exp(-0.2*np.sqrt(first_sum/n)) - np.exp(second_sum/n) + 20.0 + np.e
 ```
 
 ### Unconstrained Minimization with Nelder-Mead
 
-The nelder_mead algorithm is a very general direct search minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions.  The main weakness of the nelder_mead algorithm for complex problems is that it can prematurely converge to a local minimum in search of a global minium.
+The 'nelder_mead' algorithm is a very general direct search minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions.  The main weakness of the 'nelder_mead' algorithm for complex problems is that it can prematurely converge to a local minimum in search of a global minium.
 
 #### Unconstrained Minimization with Nelder-Mead Simplex, Booth function example (successful convergence)
 Input:
@@ -156,7 +172,7 @@ Return:
 
 ### Bounds
 
-A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem space. These bounds define valid regions of the problem space where a minimization algorithm can search. If there are not any bounds for a particular dimension of the problem space (i.e. infinity or -infinity), then specify 'None' for that element of the bound.
+A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem space. A set of bounds define valid regions of the problem space that a minimization algorithm can search. If there are not any bounds for a particular dimension of the problem space (i.e. infinity or -infinity), then specify 'None' for that element of the bound.
 
 A valid bounds list is a list of bound tuples or bound lists.
 + [(bound_tuple), ... ,(bound_tuple)]
@@ -167,7 +183,7 @@ Bounds tuples and lists are defined using the following syntax.
 + [min, max], [None, max], [min, None], [None, None]
 
 The 'bounds_check' function checks bounds lists for consistency and returns the list with basic problems corrected.
-Bounds specification is optional for the nelder_mead algorithm. However, bounds specification is very important for the particle_swarm algorithm because bounds are used to generate the initial particle swarm. BOUNDS SPECIFICATION IS REQUIRED when calling the particle_swarm algorithm.
+Bounds specification is optional for the 'nelder_mead' algorithm. However, bounds specification is required for the 'particle_swarm' algorithm because bounds are used to generate the initial particle swarm.
 
 Input:
 ```python
@@ -244,9 +260,9 @@ Return:
 [ 2.39783206e-16, -1.75571593e-16]
 ```
 ### Particle Swarm Minimization
-The particle_swarm algorithm is an evolutionary minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions. The main strength of the particle_swarm algorithm is that it effectively identifies the global minimum in problem spaces that contain many additional local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the algorithm is that it is not efficient at converging to a tight estimate of the global minimum after the neighborhood of the global minimum is identified. 
+The 'particle_swarm'algorithm is an evolutionary minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions. The main strength of the 'particle_swarm' algorithm is that it effectively identifies the global minimum in problem spaces that contain many other local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the 'particle_swarm' algorithm is that it is not efficient at converging to a tight estimate of the global minimum (after the neighborhood of the global minimum is identified). 
 
-Bounds specification is required for this implementation of the particle_swarm algorithm.  This is because bounds are used to generate the initial particle swarm.
+Bounds specification is required for this implementation of the 'particle_swarm' algorithm because bounds are used to generate the initial particle swarm.
 
 #### Bounded Minimization with Particle Swarm, Booth function example (successful convergence)
 Input:
@@ -282,7 +298,7 @@ Return:
 [-3.59268130e-11, 4.02149815e-10]
 ```
 ### Particle Swarm Followed by Nelder-Mead Refinement
-The particle_swarm and nelder_mead algorithms can be used together to efficiently minimize complex objective functions. The particle_swarm algorithm  used first to find a good estimate for the neighborhood of the global minimum (loose convergence critera are used). The particle_swarm algorithm also generates an estimate for the initial size of the simplex in the nelder_mead algorithm. The initial estimate of the global minimum and simplex size are then passed to the nelder_mead algorithm.  The nelder_mead algorithm can converge to a tight estimate of the global minimum. Though this procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
+The 'particle_swarm' and 'nelder_mead' algorithms can be used together to efficiently minimize complex objective functions. The 'particle_swarm' algorithm is used first to find a good estimate for the neighborhood of the global minimum (loose convergence critera are used). The 'particle_swarm' algorithm also generates an estimate for the initial size of the simplex in the nelder_mead algorithm. The initial estimate of the global minimum and simplex size are then passed to the 'nelder_mead' algorithm. The 'nelder_mead' algorithm will converge the initial estimate of the global minimum to a tight estimate of the global minimum. Though this sequential procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
 
 #### Bounded Minimization with Combined Procedure, Booth function example (successful convergence)
 Input:
@@ -334,29 +350,26 @@ The 'constraints_check' function checks constraints lists for consistency and re
 
 Input:
 ```python
-def func_a(x):
+def cubic(args):
     """Cubic curve"""
-    return (x[0] - 1.0) ** 3 - x[1] + 1.0
+    return (args[0] - 1.0) ** 3 - args[1] + 1.0
 
 
-def func_b(x):
+def line(args):
     """Line"""
-    return x[0] + x[1] - 2.0
+    return args[0] + args[1] - 2.0
 
 
-def func_c(x):
+def circle(args):
     """Circle"""
-    return x[0]**2 + x[1]**2 - 2.0
+    return args[0]**2 + args[1]**2 - 2.0
 
 
-const_a = [{'type': '<=0', 'func': func_a},
-           {'type': '<=0', 'func': func_b}]
-
-const_b = [{'type': '<=0', 'func': func_c}]
-
+const_a = [{'type': '<=0', 'func': cubic},
+           {'type': '<=0', 'func': line}]
+const_b = [{'type': '<=0', 'func': circle}]
 const_a_checked = opt.constraints_check(const_a)
 const_b_checked = opt.constraints_check(const_b)
-
 print(const_a_checked)
 print(const_b_checked)
 ```
@@ -368,7 +381,7 @@ Output:
  ```
 
 ### Bounded and Constrained Minimization
-It is straight forward to minimize a function after bounds and constraints have been specified. Either the nelder_mead or particle_swarm algorithms can be used with bounds and constraints. However, the combined procedure (particle_swarm with nelder_mead refinement) is recommended.
+It is straight forward to minimize a function after bounds and constraints have been specified. Both the 'nelder_mead' and 'particle_swarm' algorithms can be used with bounds and constraints. However, the combined procedure ('particle_swarm' followed by 'nelder_mead' refinement) is recommended.
 
 #### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence) --> 
 The minimum of the booth function subject to these bounds and constraints is no longer the global minimum of the unconstrained booth function.  The bounded and constrained minimum lies on the edge of the constrained problem space.
@@ -440,7 +453,7 @@ Return:
 [-2.20115198e-15, -1.85442232e-15]
 ```
 ### Model Regression
-Least squares parameterization
+The least squares objective function is the core of regression.  This implementation of the least squares objective function facilitates weights as well as bootstrapping. The difference between 'fx' and func(theta, x) is a measure of the goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is parameterized to fit the data set ('x' and 'fx').
 
 #### Function to be Fit
 ```python
@@ -478,7 +491,7 @@ x = [[-2.0, -2.0],
 ```
 
 #### 'fx' Values 
-These values were generated by passing the x vector to the 'quadratic' function and rounding the results. The coefficients that define the quadratic function were [0.26, 0.26, 0.0, 0.0, -0.48, 0.0]. Rounding the exact fx output introduces small deviations so the resulting data set serves as a good 'quasi-experimental' test set (where x represents input conditions and fx represents measured responses which include noise).
+These 'fx' values were generated by passing the 'x' vector to the 'quadratic' function and rounding the results. The coefficients that define the 'quadratic' function were [0.26, 0.26, 0.0, 0.0, -0.48, 0.0]. Rounding the exact 'fx' output introduces small deviations so the resulting data set serves as a good 'quasi-experimental' test set (where 'x' represents input conditions and 'fx' represents measured responses which include noise).
 ```python
 fx = [0.16, 0.34, 1.04, 2.26, 4.0, 0.16, 0.04, 0.26, 1.0, 2.26, 1.04, 0.26, 0.0, 0.26, 1.04, 2.26, 1.0, 0.26, 0.04,
       0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
@@ -500,8 +513,8 @@ Return:
 Weights can be added which allows additional influence to be attached to certain data points. Even weights for each term will yield the same result as unweighted least squares.
 Input:
 ```python
-even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
-               0.5, 0.5, 0.5, 0.5]
+even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 
+               0.5, 0.5, 0.5, 0.5, 0.5]
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx, even_weight))
 print(theta)
 ```
@@ -509,11 +522,11 @@ Return:
 ```python
 [0.26886494, 0.26838754, -0.01241092, 0.01181187, -0.49181187, -0.02209404]
 ```
-Uneven weights will emphasize certain terms which will impact the parameterization.  Uneven weights often arise when fitting data where experimental uncertainty can be different for each measurement.
+Uneven weights will emphasize certain terms which will impact the regression result.  Uneven weights often arise when fitting data where experimental uncertainty is different for each measurement.
 Input:
 ```python
-uneven_weight = [0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4,
-                 0.5, 0.3, 0.4, 0.5, 0.3]
+uneven_weight = [0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 
+                 0.4, 0.5, 0.3, 0.4, 0.5, 0.3]
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx, uneven_weight))
 print(theta)
 ```
@@ -522,7 +535,7 @@ Return:
 [0.27052416, 0.26978798, -0.01498306, 0.01397632, -0.49434657, -0.02491251]
 ```
 ### Bootstrapping
-The least_squares_bootstrap function drives repeated evaluation of the least_squares_objective_function where the input parameters to each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping technique uses the results (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics which describe the overall result set (i.e. fitted model parameters with their uncertainties).
+The 'least_squares_bootstrap' function drives repeated evaluation of the 'least_squares_objective_function' where the input parameters to each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping technique uses the results (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics which describe the overall result set (i.e. fitted model parameters with their uncertainties).
 Input:
 ```python
 bootstrap_set = opt.least_squares_bootstrap(theta_initial_guess, func, x, fx,
