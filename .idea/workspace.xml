@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="d0caa5dd-6130-470a-a14c-3a07b65199c0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -62,8 +60,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="391">
-              <caret line="359" column="19" selection-start-line="359" selection-start-column="19" selection-end-line="359" selection-end-column="19" />
+            <state relative-caret-position="340">
+              <caret line="358" column="54" selection-start-line="358" selection-start-column="54" selection-end-line="358" selection-end-column="54" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -414,7 +412,6 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21546261" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -688,8 +685,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="391">
-          <caret line="359" column="19" selection-start-line="359" selection-start-column="19" selection-end-line="359" selection-end-column="19" />
+        <state relative-caret-position="340">
+          <caret line="358" column="54" selection-start-line="358" selection-start-column="54" selection-end-line="358" selection-end-column="54" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>

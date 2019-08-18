@@ -356,5 +356,5 @@ bootstrap_set = opt.least_squares_bootstrap(theta_initial_guess, func, x, fx,
                                             weight=uneven_weight,
                                             bounds=None, constraints=None,
                                             multiprocess=False,
-                                            samples=100, max_iter=1000)
+                                            samples=25, max_iter=1000)
 print(bootstrap_set)
