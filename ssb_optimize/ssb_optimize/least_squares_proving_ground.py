@@ -91,9 +91,9 @@ precision = 3
 # Bootstrap least squares fit (with parallel processing)
 if __name__ == "__main__":
      bootstrap_parallel_min = opt.least_squares_bootstrap(theta, func, x_repeat, fx,
-                                             weight=w, args=None, kwargs=option,
-                                             bounds=None, constraints=None,
-                                             multiprocess=True,
-                                             samples=100, max_iter=1000)
+                                                          weight=w, args=None, kwargs=option,
+                                                          bounds=None, constraints=None,
+                                                          multiprocess=True,
+                                                          samples=100, max_iter=1000)
      print(bootstrap_parallel_min)
 

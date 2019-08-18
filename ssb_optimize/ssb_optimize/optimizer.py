@@ -788,7 +788,7 @@ def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=
     random sampling with replacement.
 
     In this implementation, each evaluation of the least_squares_objective_fuction (each 'result_i') can be made
-    independently which lets us parrallelize in an 'embarrassingly parallel fashion' using mp.Pool.map().  This can
+    independently which lets us parallelize in an 'embarrassingly parallel fashion' using mp.Pool.map().  This can
     improve performance if the 'func' passed to the least_squares_objective_function is expensive to evaluate.
 
     The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a

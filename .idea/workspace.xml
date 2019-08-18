@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d0caa5dd-6130-470a-a14c-3a07b65199c0" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_nelder_mead.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_nelder_mead.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -17,8 +17,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-3740">
-              <caret line="89" column="38" selection-start-line="89" selection-start-column="38" selection-end-line="89" selection-end-column="38" />
+            <state relative-caret-position="221">
+              <caret line="779" selection-start-line="779" selection-end-line="782" selection-end-column="86" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -29,8 +29,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="88" column="22" lean-forward="true" selection-start-line="88" selection-start-column="22" selection-end-line="88" selection-end-column="22" />
+            <state relative-caret-position="85">
+              <caret line="83" selection-start-line="83" selection-end-line="88" selection-end-column="22" />
               <folding>
                 <element signature="e#0#33#0" expanded="true" />
               </folding>
@@ -62,8 +62,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="374">
-              <caret line="338" lean-forward="true" selection-start-line="338" selection-end-line="338" />
+            <state relative-caret-position="391">
+              <caret line="359" column="19" selection-start-line="359" selection-start-column="19" selection-end-line="359" selection-end-column="19" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -157,15 +157,15 @@
         <option value="$APPLICATION_CONFIG_DIR$/scratches/scratch_8.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_least_squares_bootstrap.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/objective_functions.py" />
-        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/proving_ground.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_particle_swarm.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_nelder_mead.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounds_constraints.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_least_squares.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py" />
-        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_nelder_mead.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" />
       </list>
     </option>
@@ -354,8 +354,8 @@
     <recent_temporary>
       <list>
         <item itemvalue="Python.examples" />
-        <item itemvalue="Python.proving_ground" />
         <item itemvalue="Python.least_squares_proving_ground" />
+        <item itemvalue="Python.proving_ground" />
         <item itemvalue="Python.least_squares_bootstrap (1)" />
         <item itemvalue="Python.context" />
       </list>
@@ -632,30 +632,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="88" column="22" lean-forward="true" selection-start-line="88" selection-start-column="22" selection-end-line="88" selection-end-column="22" />
-          <folding>
-            <element signature="e#0#33#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/constraint_functions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
           <caret line="18" column="66" lean-forward="true" selection-start-line="18" selection-start-column="66" selection-end-line="18" selection-end-column="66" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-3740">
-          <caret line="89" column="38" selection-start-line="89" selection-start-column="38" selection-end-line="89" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -686,10 +666,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="85">
+          <caret line="83" selection-start-line="83" selection-end-line="88" selection-end-column="22" />
+          <folding>
+            <element signature="e#0#33#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="221">
+          <caret line="779" selection-start-line="779" selection-end-line="782" selection-end-column="86" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="374">
-          <caret line="338" lean-forward="true" selection-start-line="338" selection-end-line="338" />
+        <state relative-caret-position="391">
+          <caret line="359" column="19" selection-start-line="359" selection-start-column="19" selection-end-line="359" selection-end-column="19" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
           </folding>
