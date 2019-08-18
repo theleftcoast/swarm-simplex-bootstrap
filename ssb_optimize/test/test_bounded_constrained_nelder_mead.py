@@ -7,7 +7,7 @@ class ObjectiveFunctionTestCase(TestCase):
     func = obj.sphere
     bounds = [(-1.5, 1.5), (-0.5, 2.5)]
     constraints = [{'type': '<=0', 'func': const.f1},
-                     {'type': '<=0', 'func': const.f2}]
+                   {'type': '<=0', 'func': const.f2}]
     initial_pt_valid = [-0.5, 1.0]
     initial_pt_invalid = [-500.0, 1000.0]
     global_minimum = [0.0, 0.0]
