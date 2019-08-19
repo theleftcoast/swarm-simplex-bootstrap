@@ -32,6 +32,7 @@ To run unit tests, open a shell environment and run the following command in the
 ```console
 python -m unittest discover -v
 ```
+
 ### Project Structure, Versioning, and Documentation
 Project structure follows [python-guide.org recommendations](https://docs.python-guide.org/writing/structure/).  
 
@@ -42,7 +43,7 @@ Versioning for publishing to PyPI follows the "major.minor.patch" format based o
 + minor version - when you add functionality in a backwards-compatible manner, and
 + patch version - when you make backwards-compatible bug fixes.
 
-The [Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) is a useful reference for keeping documentation up to date.
+The [Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) is a useful reference for keeping Markdown documentation up to date.
 
 ### General Information
 Start off by importing the 'optimizer' module.   
@@ -64,6 +65,7 @@ The docstrings for these functions contain additional information about how each
 print(function.__doc__)
 help(function)
 ```
+
 ### Test Functions for Minimization
 The test functions used in this tutorial are all described in the [Test functions for optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization) Wikipedia page.  These test functions are used to demonstrate performance of minimization algorithms in situations relevant to real world applications.
 
@@ -72,7 +74,7 @@ Additional information for the test funtions used in this tutorial was taken fro
 Jamil, M., & Yang, X. S. (2013). A literature survey of benchmark functions for global optimisation problems. International Journal of Mathematical Modelling and Numerical Optimisation, 4(2), 150. https://doi.org/10.1504/ijmmno.2013.055204
 
 ##### Booth Function
-The Booth function is continuous, differentiable, non-separable, non-scalable, and unimodal. The Booth function has a smooth approach to the global minimum.  This mimics the smooth approach to a minimum for many functions when near a local or global minimum.
+The Booth function is continuous, differentiable, non-separable, non-scalable, and unimodal. It has a smooth approach to the global minimum.  This mimics the smooth approach to a minimum for many functions when near a local or global minimum.
 
 ![Booth Function](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Booth%27s_function.pdf/page1-320px-Booth%27s_function.pdf.jpg "Booth Function")
 
@@ -132,6 +134,7 @@ def ackley(args):
 The 'nelder_mead' algorithm is a very general direct search minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions.  The main weakness of the 'nelder_mead' algorithm for complex problems is that it can prematurely converge to a local minimum in search of a global minium.
 
 #### Unconstrained Minimization with Nelder-Mead Simplex, Booth function example (successful convergence)
+
 Input:
 ```python
 initial_pt = [2.0, 2.0]
@@ -145,6 +148,7 @@ Return:
 ```
 
 #### Unconstrained Minimization with Nelder-Mead Simplex, Rosenbrock function example (successful convergence)
+
 Input:
 ```python
 initial_pt = [2.0, 2.0]
@@ -158,6 +162,7 @@ Return:
 ```
 
 #### Unconstrained Minimization with Nelder-Mead Simplex, Ackley function example (successful convergence)
+
 Input:
 ```python
 initial_pt = [0.1, 0.1]
@@ -183,6 +188,7 @@ Bounds tuples and lists are defined using the following syntax.
 + [min, max], [None, max], [min, None], [None, None]
 
 The 'bounds_check' function checks bounds lists for consistency and returns the list with basic problems corrected.
+
 Bounds specification is optional for the 'nelder_mead' algorithm. However, bounds specification is required for the 'particle_swarm' algorithm because bounds are used to generate the initial particle swarm.
 
 Input:
@@ -210,6 +216,7 @@ Return:
 ### Bounded Minimization with Nelder-Mead 
 
 #### Bounded Minimization with Nelder-Mead Simplex, Booth function example (successful convergence)
+
 Input:
 ```python
 initial_pt = [2.0, 2.0]
@@ -221,7 +228,9 @@ Return:
 ```python
 [1., 3.]
 ```
+
 #### Bounded Minimization with Nelder-Mead Simplex, Rosenbrock function example (successful convergence)
+
 Input:
 ```python
 initial_pt = [2.0, 2.0]
@@ -233,8 +242,10 @@ Return:
 ```python
 [1., 1.]
 ```
+
 ##### Bounded Minimization with Nelder-Mead Simplex, Ackley function example (convergence failure) 
 This starting point is far from the global minimum for the Ackley function.  This causes the  Nelder-Mead algorithm to become trapped in a local minimum.
+
 Input:
 ```python
 initial_pt = [2.0, 2.0]
@@ -246,8 +257,10 @@ Return:
 ```python
 [1.97445199, 1.97445199]
 ```
+
 #### Bounded Minimization with Nelder-Mead Simplex, Ackley function example (successful convergence)
 This starting point is close to the global minimum for the Ackley function.  There are no local minima between this starting point and the global minimum. The nelder_mead algorithm quickly converges to the global minimum.
+
 Input:
 ```python
 initial_pt = [0.1, 0.1]
@@ -259,12 +272,14 @@ Return:
 ```python
 [ 2.39783206e-16, -1.75571593e-16]
 ```
+
 ### Particle Swarm Minimization
-The 'particle_swarm'algorithm is an evolutionary minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions. The main strength of the 'particle_swarm' algorithm is that it effectively identifies the global minimum in problem spaces that contain many other local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the 'particle_swarm' algorithm is that it is not efficient at converging to a tight estimate of the global minimum (after the neighborhood of the global minimum is identified). 
+The 'particle_swarm' algorithm is an evolutionary minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions. The main strength of the 'particle_swarm' algorithm is that it effectively identifies the global minimum in problem spaces that contain many other local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the 'particle_swarm' algorithm is that it is not efficient at converging to a tight estimate of the global minimum (after the neighborhood of the global minimum is identified). 
 
 Bounds specification is required for this implementation of the 'particle_swarm' algorithm because bounds are used to generate the initial particle swarm.
 
 #### Bounded Minimization with Particle Swarm, Booth function example (successful convergence)
+
 Input:
 ```python
 func = booth
@@ -275,7 +290,9 @@ Return:
 ```python
 [0.99999974, 3.00000191]
 ```
+
 #### Bounded Minimization with Particle Swarm, Rosenbrock function example (successful convergence)
+
 Input:
 ```python
 func = rosenbrock
@@ -286,7 +303,9 @@ Return:
 ```python
 [0.99999155, 0.99998029]
 ```
+
 #### Bounded Minimization with Particle Swarm, Ackley function example (successful convergence)
+
 Input:
 ```python
 func = ackley
@@ -297,10 +316,12 @@ Return:
 ```python
 [-3.59268130e-11, 4.02149815e-10]
 ```
+
 ### Particle Swarm Followed by Nelder-Mead Refinement
-The 'particle_swarm' and 'nelder_mead' algorithms can be used together to efficiently minimize complex objective functions. The 'particle_swarm' algorithm is used first to find a good estimate for the neighborhood of the global minimum (loose convergence critera are used). The 'particle_swarm' algorithm also generates an estimate for the initial size of the simplex in the nelder_mead algorithm. The initial estimate of the global minimum and simplex size are then passed to the 'nelder_mead' algorithm. The 'nelder_mead' algorithm will converge the initial estimate of the global minimum to a tight estimate of the global minimum. Though this sequential procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
+The 'particle_swarm' and 'nelder_mead' algorithms can be used together to efficiently minimize complex objective functions. The 'particle_swarm' algorithm is used first to find a good estimate for the neighborhood of the global minimum (loose convergence critera are used). The 'particle_swarm' algorithm also yields an estimate for the initial size of the simplex in the nelder_mead algorithm. The initial estimate of the global minimum and simplex size are then passed to the 'nelder_mead' algorithm. The 'nelder_mead' algorithm will converge the initial estimate of the global minimum to a tight estimate of the global minimum. Though this sequential procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
 
 #### Bounded Minimization with Combined Procedure, Booth function example (successful convergence)
+
 Input:
 ```python
 func = booth
@@ -314,7 +335,9 @@ Return:
 [1., 1.]
 [-2.48273518e-16, 1.10150570e-15]
 ```
+
 #### Bounded Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
+
 Input:
 ```python
 func = rosenbrock
@@ -326,7 +349,9 @@ Return:
 ```python
 [1., 1.]
 ```
+
 #### Bounded Minimization with Combined Procedure, Ackley function example (successful convergence)
+
 Input:
 ```python
 func = ackley
@@ -373,7 +398,7 @@ const_b_checked = opt.constraints_check(const_b)
 print(const_a_checked)
 print(const_b_checked)
 ```
-Output:
+Return:
  ```python
 [{'type': '<=0', 'func': <function func_a at 0x0352AC90>, 'args': (), 'kwargs': {}}, 
  {'type': '<=0', 'func': <function func_b at 0x0352A348>, 'args': (), 'kwargs': {}}]
@@ -383,8 +408,9 @@ Output:
 ### Bounded and Constrained Minimization
 It is straight forward to minimize a function after bounds and constraints have been specified. Both the 'nelder_mead' and 'particle_swarm' algorithms can be used with bounds and constraints. However, the combined procedure ('particle_swarm' followed by 'nelder_mead' refinement) is recommended.
 
-#### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence) --> 
+#### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence)
 The minimum of the booth function subject to these bounds and constraints is no longer the global minimum of the unconstrained booth function.  The bounded and constrained minimum lies on the edge of the constrained problem space.
+
 Input:
 ```python
 func = booth
@@ -397,8 +423,10 @@ Return:
 ```python
 [-0.00337825, 2.00337825]
 ```
+
 #### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence)
 The minimum of the booth function subject to these bounds and constraints is no longer the global minimum of the unconstrained booth function.  The bounded and constrained minimum lies on the edge of the constrained problem space.
+
 Input:
 ```python
 func = booth
@@ -411,8 +439,10 @@ Return:
 ```python
 [0.90574948, 1.08610215]
 ```
+
 #### Bounded and Constrained Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
-The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies on the edge of the constrained problem space.
+The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
+
 Input:
 ```python
 func = rosenbrock
@@ -425,8 +455,10 @@ Return:
 ```python
 [1., 1.]
 ```
+
 #### Bounded and Constrained Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
-The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies on the edge of the constrained problem space.
+The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
+
 Input:
 ```python
 func = rosenbrock
@@ -439,7 +471,9 @@ Return:
 ```python
 [1., 1.]
 ```
+
 #### Bounded and Constrained Minimization with Combined Procedure, Ackley function example (successful convergence)
+
 Input:
 ```python
 func = ackley
@@ -452,8 +486,9 @@ Return:
 ```python
 [-2.20115198e-15, -1.85442232e-15]
 ```
+
 ### Model Regression
-The least squares objective function is the core of regression.  This implementation of the least squares objective function facilitates weights as well as bootstrapping. The difference between 'fx' and func(theta, x) is a measure of the goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is parameterized to fit the data set ('x' and 'fx').
+The least squares objective function is the core of regression.  This implementation of the least squares objective function facilitates weights as well as bootstrapping. The difference between 'fx' and 'func(theta, x)' is a measure of the goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is regressed to fit the data set ('x' and 'fx').
 
 #### Function to be Fit
 ```python
@@ -461,6 +496,7 @@ def quadratic(x,a,b,c,d,e,f):
     """General quadratic function"""
     return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
 ```
+
 #### 'x' Vectors
 ```python
 x = [[-2.0, -2.0],
@@ -496,7 +532,9 @@ These 'fx' values were generated by passing the 'x' vector to the 'quadratic' fu
 fx = [0.16, 0.34, 1.04, 2.26, 4.0, 0.16, 0.04, 0.26, 1.0, 2.26, 1.04, 0.26, 0.0, 0.26, 1.04, 2.26, 1.0, 0.26, 0.04,
       0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
 ```
+
 #### Basic Least Squares Regression
+
 Input:
 ```python
 func = quadratic
@@ -509,8 +547,10 @@ Return:
 ```python
 [0.26886494, 0.26838754, -0.01241092, 0.01181187, -0.49181187, -0.02209404]
 ```
+
 #### Weighted Least Squares Regression
 Weights can be added which allows additional influence to be attached to certain data points. Even weights for each term will yield the same result as unweighted least squares.
+
 Input:
 ```python
 even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 
@@ -522,7 +562,9 @@ Return:
 ```python
 [0.26886494, 0.26838754, -0.01241092, 0.01181187, -0.49181187, -0.02209404]
 ```
+
 Uneven weights will emphasize certain terms which will impact the regression result.  Uneven weights often arise when fitting data where experimental uncertainty is different for each measurement.
+
 Input:
 ```python
 uneven_weight = [0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 
@@ -534,8 +576,10 @@ Return:
 ```python
 [0.27052416, 0.26978798, -0.01498306, 0.01397632, -0.49434657, -0.02491251]
 ```
+
 ### Bootstrapping
 The 'least_squares_bootstrap' function drives repeated evaluation of the 'least_squares_objective_function' where the input parameters to each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping technique uses the results (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics which describe the overall result set (i.e. fitted model parameters with their uncertainties).
+
 Input:
 ```python
 bootstrap_set = opt.least_squares_bootstrap(theta_initial_guess, func, x, fx,
@@ -545,7 +589,7 @@ bootstrap_set = opt.least_squares_bootstrap(theta_initial_guess, func, x, fx,
                                             samples=100, max_iter=1000)
 print(bootstrap_set)
 ```
-Output:
+Return:
 ```python
 [[2.78864457e-01, 2.59708810e-01, -4.19020191e-02, 1.91072056e-02, -4.99576438e-01, 3.48093586e-03]
  [2.60000000e-01, 2.60000000e-01, 0.00000000e+00, 0.00000000e+00, -4.80000000e-01, 0.00000000e+00]
