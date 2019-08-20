@@ -233,7 +233,7 @@ def feasible_points_random(bounds, constraints=None, point_count=50, max_iter=No
     Raises:
         TypeError: point count must be an integer
         TypeError: max_iter must be an integer
-        TypeError: inf_repl must be a nubmer
+        TypeError: inf_repl must be a number
         RuntimeWarning: len(feasible_points) is less than the specified point_count
     """
     # Validate input variables
@@ -321,14 +321,17 @@ def _infinity_check(x):
     return np.any(element_check)
 
 
-def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-15,
-                flat_tol=10.0**-13, max_iter=10000, max_bisect_iter=100, initial_size=0.01):
+def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None, small_tol=10.0**-14,
+                flat_tol=10.0**-12, max_iter=10000, max_bisect_iter=100, initial_size=0.01):
     """Minimize a scalar function using the Nelder-Mead simplex algorithm.
 
     Implementation details can be found in...
 
     Gao, F., & Han, L. (2010). Implementing the Nelder-Mead simplex algorithm with adaptive parameters. Computational
         Optimization and Applications, 51(1), 259–277. https://doi.org/10.1007/s10589-010-9329-3
+
+    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
+    termination criteria are problem dependent.
 
     Args:
         x0 (list): Vector representing the initial starting point for optimization algorithm.
@@ -518,6 +521,9 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     The distance between the two best points can be used as an estimate for the initial simplex size if the
     Nelder-Mead algorithm is used to refine the optimum. A good estimate is (distance_between_best_two_pts)/4.0.
 
+    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
+    termination criteria are problem dependent.
+
     Args:
         func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func (if any).
@@ -637,7 +643,8 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
 
 
 def _bootstrap_sample(array_size, sample_size):
-    """
+    """Returns an array of integers used for bootstrap analysis.
+
     Returns an array of integers which is a uniform random sample consisting of [sample_size] elements taken from an
     array of indices where n = [array_size].  This array of multipliers can be used to generate bootstrap confidence
     intervals.
@@ -686,7 +693,7 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         fx (list): List of floats representing output values of a data set.
         w (list, optional): List of floats representing the weight (often '1.0/std_error_i').
         b (list, optional): List of integers representing the bootstrap multiplier.
-        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> float.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *theta, *args, **kwargs) --> float.
         args (tuple, optional): Additional positional arguments required by func.
         kwargs (dict, optional): Additional keyword arguments required by func.
         bounds (list): Validated list of bound tuples (i.e. bounds returned by bounds_check).
@@ -733,10 +740,9 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         kwargs_list = kwargs
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
-    n = len(theta)
-    # TODO: Remove bounds_check and constraints_check. Not needed since nelder_mead and particle_swarm are called first.
-    bound = bounds # bounds_check(n, bounds)
-    const = constraints # constraints_check(constraints)
+    # n = len(theta)
+    bound = bounds
+    const = constraints
     arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list)))
     results = np.apply_along_axis(_least_squares_function_wrapper, 1, arguments)
     return np.sum(results) + _penalty(theta, bound, const)
@@ -773,7 +779,7 @@ def _least_squares_bootstrap_function_wrapper(argument):
 
 
 def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=None, bounds=None, constraints=None,
-                            multiprocess=False, samples=500, small_tol=10.0**-15, flat_tol=10.0**-13, max_iter=10000,
+                            multiprocess=False, samples=500, small_tol=10.0**-14, flat_tol=10.0**-12, max_iter=10000,
                             max_bisect_iter=100, initial_size=0.01):
     """Returns a list of the results of repeated least squares fitting of func to random samples taken from x and fx.
 
@@ -789,11 +795,14 @@ def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=
 
     In this implementation, each evaluation of the least_squares_objective_fuction (each 'result_i') can be made
     independently which lets us parallelize in an 'embarrassingly parallel fashion' using mp.Pool.map().  This can
-    improve performance if the 'func' passed to the least_squares_objective_function is expensive to evaluate.
+    improve performance if the 'func' passed to the least_squares_objective_function is very expensive to evaluate.
 
     The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
-    performance improvement. The Python multiprocessing library often results in slower performance because of the
-    system overhead required to manage multiple processes.
+    performance improvement. The Python multiprocessing library can sometimes result in slower performance because of
+    the additional system overhead required to manage multiple processes.
+
+    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
+    termination criteria are problem dependent.
 
     If least_squares_bootstrap is used with 'multiprocess = True', then be careful to use a __name__ check block to
     separate the library functions from the main script where they are called.  If this is not done, then code which
@@ -814,7 +823,7 @@ def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=
 
     Args:
         theta0 (list): Vector representing the initial starting point for the bootstrapping algorithm.
-        func (callable): Scalar function to be minimized. Signature must be func(x, *theta *args, **kwargs) --> float.
+        func (callable): Scalar function to be minimized. Signature must be func(x, *theta, *args, **kwargs) --> float.
         x (list): List of tuples or list of lists representing input values of a data set for func.
         fx (list): List of floats representing output values of a data set for func.
         weight (list, optional): List of floats representing the weight.

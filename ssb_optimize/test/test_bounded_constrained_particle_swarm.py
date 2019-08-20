@@ -46,7 +46,6 @@ class ObjectiveFunctionTestCase(TestCase):
         assert it gets at least kind of close to the correct value
         """
         minimum, nelder_mead_initial = particle_swarm(self.func, bounds=self.bounds, constraints=self.constraints)
-        print(minimum)
         self.assertArrayAlmostEqual(minimum, self.global_minimum, places=self.precision)
 
 

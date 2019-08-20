@@ -4,6 +4,8 @@
     <list default="true" id="d0caa5dd-6130-470a-a14c-3a07b65199c0" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py" beforeDir="false" afterPath="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -13,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
-              <caret line="843" column="26" lean-forward="true" selection-start-line="843" selection-start-column="26" selection-end-line="843" selection-end-column="26" />
+            <state relative-caret-position="323">
+              <caret line="813" column="30" lean-forward="true" selection-start-line="813" selection-start-column="30" selection-end-line="813" selection-end-column="30" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -26,33 +28,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1411">
-              <caret line="83" selection-start-line="83" selection-end-line="88" selection-end-column="22" />
-              <folding>
-                <element signature="e#0#33#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-289">
-              <folding>
-                <element signature="e#0#33#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-204">
-              <caret line="204" column="27" selection-start-line="204" selection-start-column="27" selection-end-line="204" selection-end-column="27" />
+            <state relative-caret-position="663">
+              <caret line="217" column="109" lean-forward="true" selection-start-line="217" selection-end-line="217" selection-end-column="109" />
               <folding>
                 <element signature="e#0#23#0" expanded="true" />
               </folding>
@@ -94,12 +73,12 @@
       <find>kwargs=Non</find>
       <find>args_list</find>
       <find>[()]</find>
-      <find>print</find>
       <find>cpu</find>
       <find>scalar</find>
       <find>obj</find>
       <find>nelder</find>
       <find>nelder_mead</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -139,11 +118,11 @@
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_nelder_mead.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounds_constraints.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_least_squares.py" />
-        <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_nelder_mead.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares_proving_ground.py" />
-        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" />
         <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py" />
+        <option value="$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py" />
       </list>
     </option>
   </component>
@@ -391,13 +370,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1616" height="876" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21546261" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21546261" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32974428" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3176312" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.3176312" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39973083" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -588,16 +568,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="202">
-          <caret line="64" column="72" selection-start-line="64" selection-start-column="72" selection-end-line="64" selection-end-column="72" />
-          <folding>
-            <element signature="e#0#82#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/constraint_functions.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -642,16 +612,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
-          <caret line="843" column="26" lean-forward="true" selection-start-line="843" selection-start-column="26" selection-end-line="843" selection-end-column="26" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/least_squares.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-289">
@@ -673,10 +633,30 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/examples.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-204">
-          <caret line="204" column="27" selection-start-line="204" selection-start-column="27" selection-end-line="204" selection-end-column="27" />
+        <state relative-caret-position="663">
+          <caret line="217" column="109" lean-forward="true" selection-start-line="217" selection-end-line="217" selection-end-column="109" />
           <folding>
             <element signature="e#0#23#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/test/test_bounded_constrained_particle_swarm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="125">
+          <caret line="47" column="114" selection-start-line="47" selection-start-column="114" selection-end-line="47" selection-end-column="114" />
+          <folding>
+            <element signature="e#0#82#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ssb_optimize/ssb_optimize/optimizer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="813" column="30" lean-forward="true" selection-start-line="813" selection-start-column="30" selection-end-line="813" selection-end-column="30" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>

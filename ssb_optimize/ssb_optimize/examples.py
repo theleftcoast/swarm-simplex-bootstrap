@@ -209,16 +209,13 @@ def quadratic(x, a, b, c):
 x = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5]
 # 'fx' values
 fx = [0.43, 0.27, 0.59, 0.62, 1.43, 2.04, 2.88, 3.96, 4.9, 6.27, 8.05, 0.3, 0.3, 0.48, 0.98, 1.51, 2.14, 3.1, 4.72]
-
 # Regression procedure
 func = quadratic
 theta_initial_guess = [2.1, -0.4, 0.3]
-
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx))
 print(theta)
 # Even weights
 even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
-
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx, even_weight))
 print(theta)
 # Uneven weights
