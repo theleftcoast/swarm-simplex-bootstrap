@@ -7,6 +7,7 @@ import multiprocessing
 NUM_CPUS = multiprocessing.cpu_count()
 NUM_PROCESSES = 1 if (NUM_CPUS - 1) <= 1 else NUM_CPUS
 
+
 def bounds_check(n, bounds=None):
     """Check bounds list of size 'n' for consistency and return the list with basic problems corrected.
 
@@ -740,7 +741,6 @@ def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=No
         kwargs_list = kwargs
     else:
         raise TypeError("kwargs must be a list or tuple of length len(x) containing kwargs dictionaries")
-    # n = len(theta)
     bound = bounds
     const = constraints
     arguments = np.array(list(zip(func_list, theta_list, x_array, fx_array, w_array, b_array, args_list, kwargs_list)))
@@ -757,7 +757,7 @@ def _least_squares_bootstrap_function_wrapper(argument):
 
     arguments = [(args, kwargs) for j in jobs_with_different_args_and_kwargs]
 
-    This wrapper supports bootstrap iterations for repreat optimization of the least_squares_objective_function.
+    This wrapper supports bootstrap iterations for repeat optimization of the least_squares_objective_function.
     """
     func, theta, x, fx, w, b, args, kwargs, bounds, constraints, small, flat, max, max_bisect, initial_size = argument
     bound = bounds_check(len(theta), bounds)
@@ -794,8 +794,8 @@ def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=
     random sampling with replacement.
 
     In this implementation, each evaluation of the least_squares_objective_fuction (each 'result_i') can be made
-    independently which lets us parallelize in an 'embarrassingly parallel fashion' using mp.Pool.map().  This can
-    improve performance if the 'func' passed to the least_squares_objective_function is very expensive to evaluate.
+    independently which lets us parallel process in an 'embarrassingly parallel fashion' using mp.Pool.map().  This
+    can improve performance if the 'func' passed to the least_squares_objective_function is very expensive to evaluate.
 
     The user can toggle between 'multiprocess = False' and 'multiprocess = True' to test and see if there is a
     performance improvement. The Python multiprocessing library can sometimes result in slower performance because of
