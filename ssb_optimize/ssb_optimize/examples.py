@@ -200,54 +200,29 @@ print(nm_minimum)
 
 
 # Function to be fit.
-def quadratic(args, a, b, c, d, e, f):
+def quadratic(x, a, b, c):
     """General quadratic function"""
-    return a*args[0]**2 + b*args[1]**2 + c*args[0] + d*args[1] + e*args[0]*args[1] + f
+    return a*x**2 + b*x + c
 
 
 # 'x' vector.
-x = [[-2.0, -2.0],
-     [-1.0, -2.0],
-     [0.0, -2.0],
-     [1.0, -2.0],
-     [2.0, -2.0],
-     [-2.0, -2.0],
-     [-1.0, -1.0],
-     [0.0, -1.0],
-     [1.0, -1.0],
-     [2.0, -1.0],
-     [-2.0, 0.0],
-     [-1.0, 0.0],
-     [0.0, 0.0],
-     [1.0, 0.0],
-     [2.0, 0.0],
-     [-2.0, 1.0],
-     [-1.0, 1.0],
-     [0.0, 1.0],
-     [1.0, 1.0],
-     [2.0, 1.0],
-     [-2.0, 2.0],
-     [-1.0, 2.0],
-     [0.0, 2.0],
-     [1.0, 2.0],
-     [2.0, 2.0]]
+x = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.1, 1.3, 1.5]
 # 'fx' values
-fx = [0.16, 0.34, 1.04, 2.26, 4.0, 0.16, 0.04, 0.26, 1.0, 2.26, 1.04, 0.26, 0.0, 0.26, 1.04, 2.26, 1.0, 0.26, 0.04,
-      0.34, 4.3, 2.26, 1.04, 0.34, 0.16]
+fx = [0.43, 0.27, 0.59, 0.62, 1.43, 2.04, 2.88, 3.96, 4.9, 6.27, 8.05, 0.3, 0.3, 0.48, 0.98, 1.51, 2.14, 3.1, 4.72]
+
 # Regression procedure
 func = quadratic
-theta_initial_guess = [0.26, 0.26, 0.0, 0.0, -0.48, 0.0]
-theta_exact = [0.268864, 0.268387, -0.012410, 0.011811, -0.491811, -0.022094]
+theta_initial_guess = [2.1, -0.4, 0.3]
+
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx))
 print(theta)
 # Even weights
-even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,
-               0.5, 0.5, 0.5, 0.5]
+even_weight = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx, even_weight))
 print(theta)
 # Uneven weights
-uneven_weight = [0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4,
-                 0.5, 0.3, 0.4, 0.5, 0.3]
+uneven_weight = [0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3, 0.4, 0.5, 0.3]
 theta = opt.nelder_mead(theta_initial_guess, opt.least_squares_objective_function, args=(func, x, fx, uneven_weight))
 print(theta)
 
@@ -255,7 +230,7 @@ print(theta)
 # BOOTSTRAPPING
 # ------------------------------
 bootstrap_set = opt.least_squares_bootstrap(theta_initial_guess, func, x, fx,
-                                            weight=uneven_weight,
+                                            weight=None,
                                             bounds=None, constraints=None,
                                             multiprocess=False,
                                             samples=25, max_iter=1000)
