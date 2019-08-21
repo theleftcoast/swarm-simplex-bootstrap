@@ -1,4 +1,4 @@
-from ssb_optimize import objective_functions as obj
+from test import objective_functions as obj
 from ssb_optimize import optimizer as opt
 from unittest import TestCase, main
 

@@ -1,4 +1,3 @@
-# from ssb_optimize import objective_functions as obj, constraint_functions as const
 from ssb_optimize.optimizer import nelder_mead, constraints_check, bounds_check
 from unittest import TestCase, main
 import numpy as np

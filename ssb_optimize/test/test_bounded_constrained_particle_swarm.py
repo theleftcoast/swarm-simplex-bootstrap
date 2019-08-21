@@ -1,4 +1,5 @@
-from ssb_optimize import objective_functions as obj, constraint_functions as const
+# from ssb_optimize import objective_functions as obj, constraint_functions as const
+from test import objective_functions as obj, constraint_functions as const
 from ssb_optimize.optimizer import particle_swarm
 from unittest import TestCase, main
 

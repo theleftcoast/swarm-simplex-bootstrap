@@ -1,4 +1,4 @@
-from ssb_optimize import objective_functions as obj
+from test import objective_functions as obj
 from ssb_optimize.optimizer import nelder_mead
 from unittest import TestCase, main
 
