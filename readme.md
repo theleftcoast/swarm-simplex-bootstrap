@@ -1,7 +1,7 @@
 # Swarm-Simplex-Bootstrap
-Swarm-Simplex-Bootstrap is a python implementation of the Particle Swarm and Nelder-Mead Simplex minimization algorithms. Both  algorithms make few assumptions about the function to be minimized (such as continuity or differentiability) so they are applicable to minimizing a wide range of functions. Bounds, linear constraints, and nonlinear constraints are supported.
+Swarm-Simplex-Bootstrap is a python implementation of the Particle Swarm and Nelder-Mead Simplex minimization algorithms. Both  algorithms make few assumptions about the function to be minimized (such as continuity or differentiability) so they are applicable to a wide variety of problems. Bounds, linear constraints, and nonlinear constraints are supported.
 
-The emphasis of this library is paramterizing models using experimental data where the model parameters can be subject to bounds and constraints. Model parameterization is carried out by minimizing the Least Squares objective function. Model parameter uncertainty is estimated by Bootstrapping.
+The emphasis of this library is paramterizing models using experimental data where the model parameters can be subject to bounds and constraints. Model parameterization is carried out by minimizing the Least Squares objective function and parameter uncertainty is estimated by Bootstrapping.
 
 ### Table of Contents
 + Installation
@@ -20,11 +20,11 @@ The emphasis of this library is paramterizing models using experimental data whe
 + Bootstrapping
 
 ### Installation
-ssb_optimize can be installed as a python package using pip. Package dependencies include numpy, itertools, numbers, and multiprocessing.
+ssb_optimize can be installed as a python package using pip.  Dependencies include numpy, itertools, numbers, and multiprocessing.
 ```console
 python -m pip install ssb_optimize
 ```
-Initial development was done in Python 3.6 so I suspect the package will work with any Python 3 installation.  That being said, it hasn't been tested with any other versions of Python (if somebody would like to help with this, please let me know). 
+ssb_optimize was developed in Python 3.6 so I suspect the package will work with any Python 3 installation.  That being said, it hasn't been tested with any other versions of Python (if somebody would like to help with this, please let me know). 
 
 
 ### Testing
@@ -43,14 +43,14 @@ Versioning for publishing to PyPI follows the "major.minor.patch" format based o
 + minor version - when you add functionality in a backwards-compatible manner, and
 + patch version - when you make backwards-compatible bug fixes.
 
-The [Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) is a useful reference for keeping Markdown documentation up to date.
+The [Markdown cheat sheet](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet) is a useful reference for keeping documentation up to date.
 
 ### General Information
 Start off by importing the 'optimizer' module.   
 ```python
 import optimizer as opt
 ```
-The functions contained in the 'optimizer' module are summarized below.
+Functions contained in the 'optimizer' module are summarized below.
 + **bounds_check**: Check bounds list of size 'n' for consistency and return the list with basic problems corrected.
 + **constraints_check**: Check constraints list for consistency and return the list with basic problems corrected.
 + **feasible_points_random**: Generate an array of points using random sampling which satisfy the bounds and constraints.
@@ -60,16 +60,18 @@ The functions contained in the 'optimizer' module are summarized below.
 + **least_squares_objective_function**: Returns the result of evaluation of the least squares objective function.
 + **least_squares_bootstrap**: Returns a list of the results of repeated least squares fitting of func to random samples taken from x and fx.
 
-The docstrings for these functions contain additional information about how each function works, arguments, return values, and error handling.
+The docstring for each function contains additional information about how each function works, arguments, return values, and error handling.
 ```python
 print(function.__doc__)
 help(function)
 ```
 
-### Test Functions for Minimization
-The test functions used in this tutorial are all described in the [Test functions for optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization) Wikipedia page.  These test functions are used to demonstrate performance of minimization algorithms in situations relevant to real world applications.
+All examples shown in this tutorial are provided in the 'optimizer.py' file for reference.
 
-Additional information for the test funtions used in this tutorial was taken from the following reference.
+### Test Functions for Minimization
+Test functions used in this tutorial are detailed in the [Test functions for optimization](https://en.wikipedia.org/wiki/Test_functions_for_optimization) Wikipedia page.  These test functions are used to demonstrate performance of minimization algorithms in situations relevant to real world applications.
+
+Additional information was taken from the following reference.
 
 Jamil, M., & Yang, X. S. (2013). A literature survey of benchmark functions for global optimisation problems. International Journal of Mathematical Modelling and Numerical Optimisation, 4(2), 150. https://doi.org/10.1504/ijmmno.2013.055204
 
@@ -131,7 +133,7 @@ def ackley(args):
 
 ### Unconstrained Minimization with Nelder-Mead
 
-The 'nelder_mead' algorithm is a very general direct search minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions.  The main weakness of the 'nelder_mead' algorithm for complex problems is that it can prematurely converge to a local minimum in search of a global minium.
+The 'nelder_mead' algorithm is a very general direct search minimization method. The main weakness of the 'nelder_mead' algorithm for complex problems is that it can prematurely converge to a local minimum in search of a global minium.
 
 #### Unconstrained Minimization with Nelder-Mead Simplex, Booth function example (successful convergence)
 
@@ -177,7 +179,7 @@ Return:
 
 ### Bounds
 
-A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem space. A set of bounds define valid regions of the problem space that a minimization algorithm can search. If there are not any bounds for a particular dimension of the problem space (i.e. infinity or -infinity), then specify 'None' for that element of the bound.
+A bound specifies the minimum and maximum values allowed for each of the 'n' dimensions of the problem space. A set of bounds define a valid region of the problem space. If there are no bounds for a particular dimension of the problem space (i.e. infinity or -infinity), then specify 'None' for that element of the bound.
 
 A valid bounds list is a list of bound tuples or bound lists.
 + [(bound_tuple), ... ,(bound_tuple)]
@@ -244,7 +246,7 @@ Return:
 ```
 
 ##### Bounded Minimization with Nelder-Mead Simplex, Ackley function example (convergence failure) 
-This starting point is far from the global minimum for the Ackley function.  This causes the  Nelder-Mead algorithm to become trapped in a local minimum.
+This starting point is far from the global minimum for the Ackley function.  This causes the 'nelder_mead' algorithm to become trapped in a local minimum.
 
 Input:
 ```python
@@ -259,7 +261,7 @@ Return:
 ```
 
 #### Bounded Minimization with Nelder-Mead Simplex, Ackley function example (successful convergence)
-This starting point is close to the global minimum for the Ackley function.  There are no local minima between this starting point and the global minimum. The nelder_mead algorithm quickly converges to the global minimum.
+This starting point is close to the global minimum for the Ackley function.  There are no local minima between this starting point and the global minimum. The 'nelder_mead' algorithm quickly converges to the global minimum.
 
 Input:
 ```python
@@ -274,7 +276,7 @@ Return:
 ```
 
 ### Particle Swarm Minimization
-The 'particle_swarm' algorithm is an evolutionary minimization method. The algorithm makes few assumptions about the function to be minimized (such as continuity or differentiability) so it is applicable to minimizing a wide range of functions. The main strength of the 'particle_swarm' algorithm is that it effectively identifies the global minimum in problem spaces that contain many other local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the 'particle_swarm' algorithm is that it is not efficient at converging to a tight estimate of the global minimum (after the neighborhood of the global minimum is identified). 
+The 'particle_swarm' algorithm is an evolutionary minimization method. The main strength of the 'particle_swarm' algorithm is that it effectively identifies the global minimum in problem spaces that contain many other local minima. Though the algorithm can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem. The main weakness of the 'particle_swarm' algorithm is that it is not efficient at converging to a tight estimate of the global minimum (after the neighborhood of the global minimum is identified). 
 
 Bounds specification is required for this implementation of the 'particle_swarm' algorithm because bounds are used to generate the initial particle swarm.
 
@@ -318,7 +320,7 @@ Return:
 ```
 
 ### Particle Swarm Followed by Nelder-Mead Refinement
-The 'particle_swarm' and 'nelder_mead' algorithms can be used together to efficiently minimize complex objective functions. The 'particle_swarm' algorithm is used first to find a good estimate for the neighborhood of the global minimum (loose convergence critera are used). The 'particle_swarm' algorithm also yields an estimate for the initial size of the simplex in the nelder_mead algorithm. The initial estimate of the global minimum and simplex size are then passed to the 'nelder_mead' algorithm. The 'nelder_mead' algorithm will converge the initial estimate of the global minimum to a tight estimate of the global minimum. Though this sequential procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
+The 'particle_swarm' and 'nelder_mead' algorithms can be used together to efficiently minimize complex objective functions. The 'particle_swarm' algorithm is used first to find an estimate for the neighborhood of the global minimum (loose convergence critera is used). The 'particle_swarm' algorithm also generates an estimate for the initial size of the simplex in the 'nelder_mead' algorithm. The initial estimate of the global minimum and simplex size are then passed to the 'nelder_mead' algorithm. The 'nelder_mead' algorithm will converge to a tight estimate of the global minimum. Though this sequential procedure can identify the global minimum for MOST problems problems, there is no guarantee that it will identify the global minimum for EVERY problem.
 
 #### Bounded Minimization with Combined Procedure, Booth function example (successful convergence)
 
@@ -332,8 +334,6 @@ print(nm_minimum)
 Return:
 ```python
 [1., 3.]
-[1., 1.]
-[-2.48273518e-16, 1.10150570e-15]
 ```
 
 #### Bounded Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
@@ -365,7 +365,7 @@ Return:
 ```
 
 ### Constraints
-Constraints are functional requirements that define valid regions of the problem space that a minimization algorithm can search. A complete constraint specification must include a constraint function, any optional arguments (args and kwargs), and constraint type (inequality type). More than one constraint can be specified to define a problem space.
+Constraints are functional requirements that define valid regions of the problem space. A complete constraint specification must include a constraint function, any optional arguments (args and kwargs), and constraint type (inequality type). More than one constraint can be specified to define a problem space.
 
 A valid constraints list is a list of constraint dictionaries.
 + [{const_dict}, ... ,{const_dict}]
@@ -409,7 +409,7 @@ Return:
 It is straight forward to minimize a function after bounds and constraints have been specified. Both the 'nelder_mead' and 'particle_swarm' algorithms can be used with bounds and constraints. However, the combined procedure ('particle_swarm' followed by 'nelder_mead' refinement) is recommended.
 
 #### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence)
-The minimum of the booth function subject to these bounds and constraints is no longer the global minimum of the unconstrained booth function.  The bounded and constrained minimum lies on the edge of the constrained problem space.
+The minimum of the booth function subject to bounds and constraints is no longer the global minimum of the unconstrained booth function.  The minimum lies on the edge of the constrained problem space.
 
 Input:
 ```python
@@ -425,7 +425,7 @@ Return:
 ```
 
 #### Bounded and Constrained Minimization with Combined Procedure, Booth function example (successful convergence)
-The minimum of the booth function subject to these bounds and constraints is no longer the global minimum of the unconstrained booth function.  The bounded and constrained minimum lies on the edge of the constrained problem space.
+The minimum of the booth function subject to bounds and constraints is no longer the global minimum of the unconstrained booth function.  The minimum lies on the edge of the constrained problem space.
 
 Input:
 ```python
@@ -441,7 +441,7 @@ Return:
 ```
 
 #### Bounded and Constrained Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
-The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
+The minimum of the rosenbrock function subject to bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
 
 Input:
 ```python
@@ -457,7 +457,7 @@ Return:
 ```
 
 #### Bounded and Constrained Minimization with Combined Procedure, Rosenbrock function example (successful convergence)
-The minimum of the rosenbrock function subject to these bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
+The minimum of the rosenbrock function subject to bounds and constraints is still the global minimum of the unconstrained rosenbrock function. The global minimum lies right on the edge of the constrained problem space.
 
 Input:
 ```python
@@ -488,13 +488,13 @@ Return:
 ```
 
 ### Model Regression
-The least squares objective function is the core of regression.  This implementation of the least squares objective function facilitates weights as well as bootstrapping. The difference between 'fx' and 'func(theta, x)' is a measure of the goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is regressed to fit the data set ('x' and 'fx').
+The least squares objective function is the core of regression.  This implementation of the least squares objective function facilitates weights as well as bootstrapping. The difference between 'fx' and 'func(x, theta)' is a measure of the goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is regressed to fit the data set ('x' and 'fx').
 
 #### Function to be Fit
 ```python
-def quadratic(x,a,b,c,d,e,f):
+def quadratic(x, a, b, c):
     """General quadratic function"""
-    return a*x[0]**2 + b*x[1]**2 + c*x[0] + d*x[1] + e*x[0]*x[1] + f
+    return a*x**2 + b*x + c
 ```
 
 #### 'x' and 'fx' Vectors
@@ -533,7 +533,7 @@ Return:
 [2.24925897, -0.67474865, 0.35668829]
 ```
 
-Uneven weights will emphasize certain terms which will impact the regression result.  Uneven weights often arise when fitting data where experimental uncertainty is different for each measurement.
+Uneven weights will emphasize certain terms which impacts the regression result.  Uneven weights are commonly encountered when fitting a model to experimental data where uncertainty is different for each measurement.
 
 Input:
 ```python
@@ -547,7 +547,7 @@ Return:
 ```
 
 ### Bootstrapping
-The 'least_squares_bootstrap' function drives repeated evaluation of the 'least_squares_objective_function' where the input parameters to each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping technique uses the results (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics which describe the overall result set (i.e. fitted model parameters with their uncertainties).
+The 'least_squares_bootstrap' function drives repeated evaluation of the 'least_squares_objective_function' where input parameters for each evaluation are sampled from 'x', 'fx', and 'weight' with replacement.  The bootstrapping technique uses the results (i.e. fitted model parameters) from each repeat evaluation to derive summary statistics which describe the overall result set (i.e. fitted model parameters with their uncertainties).
 
 Input:
 ```python
