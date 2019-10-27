@@ -331,8 +331,9 @@ def nelder_mead(x0, func, args=None, kwargs=None, bounds=None, constraints=None,
     Gao, F., & Han, L. (2010). Implementing the Nelder-Mead simplex algorithm with adaptive parameters. Computational
         Optimization and Applications, 51(1), 259–277. https://doi.org/10.1007/s10589-010-9329-3
 
-    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
-    termination criteria are problem dependent.
+    Default values for small_tol and flat_tol are set conservatively low to ensure reasonably tight convergence. These
+    termination criteria are problem dependent.  You should test different values of small_tol and flat_tol for each
+    problem to find a balance between speed and precision.
 
     Args:
         x0 (list): Vector representing the initial starting point for optimization algorithm.
@@ -522,8 +523,9 @@ def particle_swarm(func, args=None, kwargs=None, bounds=None, constraints=None, 
     The distance between the two best points can be used as an estimate for the initial simplex size if the
     Nelder-Mead algorithm is used to refine the optimum. A good estimate is (distance_between_best_two_pts)/4.0.
 
-    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
-    termination criteria are problem dependent.
+    Default values for small_tol and flat_tol are set to ensure moderate speed and convergence precision. These
+    termination criteria are problem dependent.  You should test different values of small_tol and flat_tol for each
+    problem to find a balance between speed and precision.
 
     Args:
         func (callable): Scalar function to be minimized. Signature must be func(x, *args, **kwargs) --> float.
@@ -671,20 +673,20 @@ def _least_squares_function_wrapper(argument):
     function.  It also checks if either the weight or bootstrapping multipliers is zero before evaluating the func to
     improve efficiency.
 
-    objective_function_element_i = (b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx)**2
+    objective_function_element_i = (b_i*w_i)*(func(xi, *theta, *args_i, **kwargs_i) - fx)**2
     """
     func, theta, x, fx, w, b, args, kwargs = argument
-    return (w * b) * (func(x, *theta, *args, **kwargs) - fx) ** 2.0 if w > 0.0 and b > 0 else 0.0
+    return (w * b) * (func(x, *theta, *args, **kwargs) - fx) ** 2.0 if w > 0.0 and b > 0.0 else 0.0
 
 
 def least_squares_objective_function(theta, func, x, fx, w=None, b=None, args=None, kwargs=None, bounds=None,
                                      constraints=None):
     """Returns the result of evaluation of the least squares objective function.
 
-    least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(theta, xi, *args_i, **kwargs_i) - fx_i)**2}
+    least_squares_objective_function = sum_over_i{(b_i*w_i)*(func(xi, *theta, *args_i, **kwargs_i) - fx_i)**2}
 
     The least squares objective function is the core of parameter fitting.  This implementation facilitates weights
-    as well as bootstrapping. The difference between 'fx' and func(theta, xi, *args_i, **kwargs_i) is a measure of the
+    as well as bootstrapping. The difference between 'fx' and func(xi, *theta, *args_i, **kwargs_i) is a measure of the
     goodness of fit.  Minimizing this difference by adjusting 'theta' is how 'func' is parameterized to fit the data
     set ('x' and 'fx').
 
@@ -801,8 +803,9 @@ def least_squares_bootstrap(theta0, func, x, fx, weight=None, args=None, kwargs=
     performance improvement. The Python multiprocessing library can sometimes result in slower performance because of
     the additional system overhead required to manage multiple processes.
 
-    The user should test different values of small_tol and flat_tol to see if there is a performance improvement. These
-    termination criteria are problem dependent.
+    Default values for small_tol and flat_tol are set conservatively low to ensure reasonably tight convergence. These
+    termination criteria are problem dependent.  You should test different values of small_tol and flat_tol for each
+    problem to find a balance between speed and precision.
 
     If least_squares_bootstrap is used with 'multiprocess = True', then be careful to use a __name__ check block to
     separate the library functions from the main script where they are called.  If this is not done, then code which
