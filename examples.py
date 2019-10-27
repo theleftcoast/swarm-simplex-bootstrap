@@ -1,4 +1,4 @@
-import optimizer as opt
+from ssb_optimize import optimizer as opt
 import numpy as np
 
 # ------------------------------

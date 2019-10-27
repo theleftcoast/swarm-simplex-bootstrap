@@ -8,10 +8,10 @@ setuptools.setup(
     version="0.1.0",
     author="John Towne",
     author_email="towne.john@gmail.com",
-    description="Particle Swarm and Nelder-Mead Simplex minimization algorithms",
+    description="Particle Swarm and Nelder-Mead Simplex optimization algorithms with Bootstrap confidence intervals.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/pypa/sampleproject",
+    url="https://github.com/theleftcoast/swarm-simplex-bootstrap",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
