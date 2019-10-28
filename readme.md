@@ -28,7 +28,7 @@ ssb_optimize was developed in Python 3.6 so I suspect the package will work with
 
 
 ### Testing
-To run unit tests, open a shell environment and run the following command in the top-level 'ssb_optimize' directory.
+To run unit tests, open a shell environment and run the following command in the top-level directory.
 ```console
 python -m unittest discover -v
 ```
