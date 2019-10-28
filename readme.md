@@ -20,11 +20,15 @@ The emphasis of this library is paramterizing models using experimental data whe
 + Bootstrapping
 
 ### Installation
-ssb_optimize can be installed as a python package using pip.  Dependencies include numpy, itertools, numbers, and multiprocessing. 
+ssb-optimize can be obtained by cloning the [Git repository](https://github.com/theleftcoast/swarm-simplex-bootstrap) for this project.
+```console
+git clone https://github.com/theleftcoast/swarm-simplex-bootstrap
+```
+ssb-optimize can also be installed as a python package using pip.  Dependencies include numpy, itertools, numbers, and multiprocessing. 
 ```console
 python -m pip install numpy ssb-optimize
 ```
-ssb_optimize was developed in Python 3.6 so I suspect the package will work with any Python 3 installation.  That being said, it hasn't been tested with any other versions of Python (if somebody would like to help with this, please let me know). 
+ssb-optimize was developed in Python 3.6 so I suspect the package will work with any Python 3 installation.  That being said, it hasn't been tested with any other versions of Python (if somebody would like to help with this, please let me know). 
 
 
 ### Testing
