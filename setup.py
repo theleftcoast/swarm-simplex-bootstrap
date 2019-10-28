@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="ssb_optimize",
-    version="0.1.2",
+    version="0.1.3",
     author="John Towne",
     author_email="towne.john@gmail.com",
     description="Particle Swarm and Nelder-Mead Simplex optimization algorithms with Least Squares Regression and "
